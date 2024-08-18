@@ -2,6 +2,11 @@ import ServiceModel from "../../schema/Service.js";
 import footballTask from "./football/task.js";
 import winwinTask from "./winwin/task.js";
 
+const task = {
+  "football-game": footballTask,
+  winwin: winwinTask,
+};
+
 const myService = {
   // 获取服务列表
   async getServiceList(req, res, next) {
@@ -28,10 +33,6 @@ const myService = {
   async changeStatusById(req, res, next) {
     try {
       const { id, status } = req.body;
-      const task = {
-        "football-game": footballTask,
-        winwin: winwinTask,
-      };
       let result = null;
       if (status) {
         result = await task[id].start(req.body);
@@ -45,6 +46,19 @@ const myService = {
     } catch (error) {
       res.json({ code: 500, message: error.message });
     }
+  },
+
+  // 关闭所有服务
+  stopAllTask: () => {
+    return new Promise((resolve) => {
+      let pArr = [];
+      for (let id in task) {
+        pArr.push(task[id].stop({ id }));
+      }
+      Promise.all(pArr).then((res) => {
+        resolve(res);
+      });
+    });
   },
 };
 

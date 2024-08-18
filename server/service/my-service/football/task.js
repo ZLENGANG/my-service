@@ -106,7 +106,7 @@ const footballTask = {
     return new Promise(async (resolve, reject) => {
       // 更新服务状态
       await ServiceModel.findOneAndUpdate({ id }, { status: false });
-      job.cancel();
+      job?.cancel();
       resolve("stop");
     });
   },
