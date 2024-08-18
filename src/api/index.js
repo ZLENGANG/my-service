@@ -1,8 +1,10 @@
 import axios from "axios";
+import { getIPAddress } from "../../server/utils/index.js";
+import { BACK_END_PORT } from "../../config.js";
 
 const $http = axios.create({
-  baseURL: "http://192.168.10.108:3000",
-  timeout: 1000,
+  baseURL: `http://${getIPAddress()}:${BACK_END_PORT}`,
+  timeout: 1000 * 60,
 });
 
 $http.interceptors.response.use(
