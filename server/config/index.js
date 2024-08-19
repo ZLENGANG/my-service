@@ -73,3 +73,7 @@ export const WINWIN_MAP = {
   TRONSSC: "波场时时彩",
   ETHSSC: "以太时时彩",
 };
+
+// 排除耗时很久的游戏
+export const EXCLUDE_GAME_ARR = ["F3D", "HK6", "PL3", "PL5", "FKL8", "TWDLT"];
+ 

@@ -1,6 +1,11 @@
 import axios from "axios";
 import moment from "moment";
-import { WINWIN_MAP, SEND_URL, MY_SEND_URL } from "../../../config/index.js";
+import {
+  WINWIN_MAP,
+  SEND_URL,
+  MY_SEND_URL,
+  EXCLUDE_GAME_ARR,
+} from "../../../config/index.js";
 import WinWinSchema from "../../../schema/WinWin.js";
 import ServiceModel from "../../../schema/Service.js";
 
@@ -64,6 +69,9 @@ const send = (winwinToken, id) => {
       if (res.status === 200) {
         const findObj = (res.data.result || []).find((item) => item.rank > 12);
         if (findObj) {
+          if (EXCLUDE_GAME_ARR.includes(findObj.lottery)) {
+            return;
+          }
           writeFileAndSend(findObj);
         }
       }
