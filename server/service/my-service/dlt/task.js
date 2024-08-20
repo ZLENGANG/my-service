@@ -143,7 +143,6 @@ const dltTask = {
       getData().then(async (result) => {
         const data = handleData(result);
         await DltModel.create(data);
-        await ServiceModel.findOneAndUpdate({ id }, { status: true });
         axios.post(SEND_URL, {
           title: `大乐透推荐`,
           desp: `http://${SERVER_IP}:${FORNT_END_PORT}/#/dlt/detail?date=${moment().format(
@@ -154,8 +153,9 @@ const dltTask = {
     });
   },
   start({ id }) {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
       dltTask.scheduleTask(id);
+      await ServiceModel.findOneAndUpdate({ id }, { status: true });
       axios.post(SEND_URL, {
         title: `恭喜-大乐透推荐服务已启动`,
       });

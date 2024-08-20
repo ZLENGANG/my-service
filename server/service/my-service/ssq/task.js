@@ -90,8 +90,8 @@ function getData(cookie) {
         const result = res.data?.result || [];
         resolve(result);
       })
-      .catch(() => {
-        reject();
+      .catch((err) => {
+        reject(err);
       });
   });
 }
@@ -166,7 +166,8 @@ const ssqTask = {
             )}`,
           });
         })
-        .catch(() => {
+        .catch((err) => {
+          console.log(err);
           axios.post(SEND_URL, {
             title: `双色球cookies已失效`,
             desp: `http://${SERVER_IP}:${FORNT_END_PORT}`,
@@ -185,7 +186,8 @@ const ssqTask = {
           });
           resolve("start");
         })
-        .catch(() => {
+        .catch((err) => {
+          console.log(err, "双色球推荐服务启动失败");
           resolve({
             code: -1,
             message: "Token 错误",
