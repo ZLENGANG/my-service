@@ -168,7 +168,6 @@ const ssqTask = {
         .then(async (result) => {
           const data = handleData(result);
           await SsqModel.create(data);
-          await ServiceModel.findOneAndUpdate({ id }, { status: true });
           axios.post(SEND_URL, {
             title: `双色球推荐`,
             desp: `http://${SERVER_IP}:${FORNT_END_PORT}/#/ssq`,
@@ -185,8 +184,9 @@ const ssqTask = {
     });
   },
   start({ id }) {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
       ssqTask.scheduleTask(id);
+      await ServiceModel.findOneAndUpdate({ id }, { status: true });
       axios.post(SEND_URL, {
         title: `恭喜-双色球推荐服务已启动`,
       });
