@@ -6,6 +6,9 @@ import SsqModel from "../../../schema/Ssq.js";
 import ServiceModel from "../../../schema/Service.js";
 import { SEND_URL } from "../../../config/index.js";
 import { FORNT_END_PORT, SERVER_IP } from "../../../../config.js";
+import { load } from "cheerio";
+import superagent from "superagent";
+import SsqDataModel from "../../../schema/SsqData.js";
 
 const redAllArr = [
   "01",
@@ -61,38 +64,44 @@ const blueAllArr = [
 ];
 let job = null;
 
-function getData(cookie) {
+function getData() {
   return new Promise((resolve, reject) => {
-    axios
-      .get(
-        "https://www.cwl.gov.cn/cwl_admin/front/cwlkj/search/kjxx/findDrawNotice",
-        {
-          maxRedirects: 100,
-          headers: {
-            cookie,
-            "User-Agent":
-              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
-          },
-          params: {
-            name: "ssq",
-            issueCount: "",
-            issueStart: "",
-            issueEnd: "",
-            dayStart: "",
-            dayEnd: "",
-            pageNo: 1,
-            pageSize: 200,
-            week: "",
-            systemType: "PC",
-          },
+    superagent
+      .get("https://www.cjcp.cn/kaijiang/ssq/")
+      .end(async (err, res) => {
+        if (err) {
+          reject(err);
+          return;
         }
-      )
-      .then((res) => {
-        const result = res.data?.result || [];
-        resolve(result);
-      })
-      .catch((err) => {
-        reject(err);
+
+        const $ = load(res.text, { decodeEntities: false });
+
+        // 开奖结果
+        const numResArr = [];
+        $(".num_div")[0].children.forEach((item) => {
+          const data = item.children?.[0]?.data;
+          if (data) {
+            numResArr.push(data);
+          }
+        });
+
+        const obj = {
+          date: $(".num_tab  tr:nth-child(2)  td  i:nth-child(1) > em")
+            .text()
+            .substr(0, 10),
+          code: $(".kj_data > span").text().substr(0, 7),
+          red: numResArr.slice(0, 6).join(","),
+          blue: numResArr[numResArr.length - 1],
+        };
+
+        await SsqDataModel.create(obj);
+        const result = await SsqDataModel.find()
+          .sort({
+            date: -1,
+          })
+          .limit(1000)
+          .skip(0);
+        resolve(result || []);
       });
   });
 }
@@ -148,14 +157,14 @@ function handleData(result) {
 }
 
 const ssqTask = {
-  scheduleTask(id, cookie) {
+  scheduleTask(id) {
     let rule = new schedule.RecurrenceRule();
-    rule.dayOfWeek = [2, 4, 7];
-    rule.hour = 18;
+    rule.dayOfWeek = [2, 3, 4, 7];
+    rule.hour = 1;
     rule.minute = 0;
     rule.second = 0;
     job = schedule.scheduleJob(rule, async () => {
-      getData(cookie)
+      getData()
         .then(async (result) => {
           const data = handleData(result);
           await SsqModel.create(data);
@@ -170,30 +179,20 @@ const ssqTask = {
         .catch((err) => {
           console.log(err);
           axios.post(SEND_URL, {
-            title: `双色球cookies已失效`,
+            title: `双色球爬取数据失败`,
             desp: `http://${SERVER_IP}:${FORNT_END_PORT}`,
           });
           ssqTask.stop({ id });
         });
     });
   },
-  start({ id, token }) {
+  start({ id }) {
     return new Promise((resolve) => {
-      getData(token)
-        .then((res) => {
-          ssqTask.scheduleTask(id, token);
-          axios.post(SEND_URL, {
-            title: `恭喜-双色球推荐服务已启动`,
-          });
-          resolve("start");
-        })
-        .catch((err) => {
-          console.log(err, "双色球推荐服务启动失败");
-          resolve({
-            code: -1,
-            message: "Token 错误",
-          });
-        });
+      ssqTask.scheduleTask(id);
+      axios.post(SEND_URL, {
+        title: `恭喜-双色球推荐服务已启动`,
+      });
+      resolve("start");
     });
   },
   stop({ id }) {

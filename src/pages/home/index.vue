@@ -108,9 +108,9 @@ const handleChangeStatus = (row, status) => {
   changeServiceStatusById({ id: row.id, status, token }).then((res) => {
     if (res.code === -1) {
       const errorMap = {
-        ssq: {
-          tokenUrl: "https://www.cwl.gov.cn/ygkj/wqkjgg/ssq/",
-        },
+        // ssq: {
+        //   tokenUrl: "https://www.cwl.gov.cn/ygkj/wqkjgg/ssq/",
+        // },
         winwin: {
           tokenUrl:
             "https://www.mgvip18.com/mobile2/#/pages/tabBarPages/live/index",
