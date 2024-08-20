@@ -67,6 +67,7 @@ function getData(cookie) {
       .get(
         "https://www.cwl.gov.cn/cwl_admin/front/cwlkj/search/kjxx/findDrawNotice",
         {
+          maxRedirects: 0,
           headers: {
             cookie,
             "User-Agent":
