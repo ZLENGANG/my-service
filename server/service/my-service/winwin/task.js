@@ -67,11 +67,11 @@ const send = (winwinToken, id) => {
   getDragonGames(winwinToken)
     .then((res) => {
       if (res.status === 200) {
-        const findObj = (res.data.result || []).find((item) => item.rank > 12);
+        const filterArr = (res.data.result || []).filter(
+          (item) => !EXCLUDE_GAME_ARR.includes(item.lottery)
+        );
+        const findObj = filterArr.find((item) => item.rank > 15);
         if (findObj) {
-          if (EXCLUDE_GAME_ARR.includes(findObj.lottery)) {
-            return;
-          }
           writeFileAndSend(findObj);
         }
       }
@@ -89,7 +89,7 @@ const send = (winwinToken, id) => {
 };
 
 const winwinTask = {
-  start({ winwinToken, id }) {
+  start({ token: winwinToken, id }) {
     return new Promise((resolve, reject) => {
       getDragonGames(winwinToken)
         .then(async (res) => {
@@ -97,13 +97,11 @@ const winwinTask = {
             send(winwinToken, id);
           }, 30 * 1000);
 
-          let msg = "双赢彩票监听服务启动成功！";
           axios.post(SEND_URL, {
-            title: `恭喜`,
-            desp: msg,
+            title: `恭喜-双赢彩票监听服务启动已启动`,
           });
           await ServiceModel.findOneAndUpdate({ id }, { status: true });
-          resolve(msg);
+          resolve("start");
         })
         .catch((err) => {
           resolve({

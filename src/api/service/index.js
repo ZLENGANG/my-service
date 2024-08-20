@@ -35,3 +35,20 @@ export const updateClub = (params) => {
 export const deleteClub = (params) => {
   return $http.post("/my-service/footballGame/clubs/delete", params);
 };
+
+export const getDltList = (params) => {
+  return $http.get("/my-service/dlt/list", params);
+};
+
+export const getDltDetail = (params) => {
+  return $http.get("/my-service/dlt/detail", params);
+};
+
+
+export const getSsqList = (params) => {
+  return $http.get("/my-service/ssq/list", params);
+};
+
+export const getSsqDetail = (params) => {
+  return $http.get("/my-service/ssq/detail", params);
+};

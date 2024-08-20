@@ -1,10 +1,15 @@
 import ServiceModel from "../../schema/Service.js";
 import footballTask from "./football/task.js";
 import winwinTask from "./winwin/task.js";
+import dltTask from "./dlt/task.js";
+import ssqTask from "./ssq/task.js";
+import { NEED_TOKEN_ID_ARR } from "../../../config.js";
 
 const task = {
   "football-game": footballTask,
   winwin: winwinTask,
+  dlt: dltTask,
+  ssq: ssqTask,
 };
 
 const myService = {
@@ -25,14 +30,23 @@ const myService = {
         total,
       });
     } catch (error) {
-      res.status(500).json({ message: "Error fetching users", error });
+      res.json({ code: 500, message: error?.message || error });
     }
   },
 
   // 切换服务状态
   async changeStatusById(req, res, next) {
     try {
-      const { id, status } = req.body;
+      const { id, status, token } = req.body;
+
+      if (NEED_TOKEN_ID_ARR.includes(id) && !token && status) {
+        res.json({
+          code: -1,
+          message: "请输入token",
+        });
+        return;
+      }
+
       let result = null;
       if (status) {
         result = await task[id].start(req.body);
@@ -44,7 +58,7 @@ const myService = {
         typeof result === "object" ? result : { status: 200, data: result };
       res.json(sendInfo);
     } catch (error) {
-      res.json({ code: 500, message: error.message });
+      res.json({ code: 500, message: error?.message || error });
     }
   },
 

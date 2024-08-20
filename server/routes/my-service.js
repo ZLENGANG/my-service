@@ -3,6 +3,9 @@ import myService from "../service/my-service/service.js";
 import winwinService from "../service/my-service/winwin/index.js";
 import footballService from "../service/my-service/football/index.js";
 import clubService from "../service/my-service/football/club.js";
+import dltService from "../service/my-service/dlt/index.js";
+import ssqService from "../service/my-service/ssq/index.js";
+
 const myServiceRouter = express.Router();
 
 myServiceRouter.get(`/list`, (req, res, next) => {
@@ -39,6 +42,23 @@ myServiceRouter.post(`/footballGame/clubs/update`, (req, res, next) => {
 
 myServiceRouter.post(`/footballGame/clubs/delete`, (req, res, next) => {
   clubService.deleteClub(req, res, next);
+});
+
+myServiceRouter.get(`/dlt/list`, (req, res, next) => {
+  dltService.getDltList(req, res, next);
+});
+
+myServiceRouter.get(`/dlt/detail`, (req, res, next) => {
+  dltService.getDltDetailByDate(req, res, next);
+});
+
+
+myServiceRouter.get(`/ssq/list`, (req, res, next) => {
+  ssqService.getSsqList(req, res, next);
+});
+
+myServiceRouter.get(`/ssq/detail`, (req, res, next) => {
+  ssqService.getSsqDetailByDate(req, res, next);
 });
 
 export default myServiceRouter;

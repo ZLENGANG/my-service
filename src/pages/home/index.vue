@@ -10,10 +10,12 @@
 
 <script setup>
 import { getServiceList, changeServiceStatusById } from "@/api/service";
-import { NDataTable, NSwitch, NButton, useMessage } from "naive-ui";
+import { NDataTable, NSwitch, NButton, useMessage, useDialog } from "naive-ui";
 import { reactive, ref, h } from "vue";
+import { NEED_TOKEN_ID_ARR } from "../../../config.js";
 
 const message = useMessage();
+const dialog = useDialog();
 const columns = ref([
   {
     title: "序号",
@@ -99,13 +101,32 @@ const getData = () => {
 };
 
 const handleChangeStatus = (row, status) => {
-  let winwinToken = null;
-  if (row.id === "winwin" && status) {
-    winwinToken = window.prompt("请输入token");
+  let token = null;
+  if (NEED_TOKEN_ID_ARR.includes(row.id) && status) {
+    token = window.prompt("请输入token");
   }
-  changeServiceStatusById({ id: row.id, status, winwinToken }).then((res) => {
+  changeServiceStatusById({ id: row.id, status, token }).then((res) => {
     if (res.code === -1) {
-      return message.error(res.message);
+      const errorMap = {
+        ssq: {
+          tokenUrl: "https://www.cwl.gov.cn/ygkj/wqkjgg/ssq/",
+        },
+        winwin: {
+          tokenUrl:
+            "https://www.mgvip18.com/mobile2/#/pages/tabBarPages/live/index",
+        },
+      }[row.id];
+
+      dialog.info({
+        title: "提示",
+        content: errorMap.content || "请先配置正确的token",
+        positiveText: "确定",
+        onPositiveClick: () => {
+          window.open(errorMap.tokenUrl);
+        },
+      });
+
+      return;
     }
     row.status = !row.status;
   });

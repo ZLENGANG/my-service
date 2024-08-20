@@ -4,6 +4,8 @@ import Winwin from "../pages/winwin/index.vue";
 import FootballGame from "../pages/football-game/index.vue";
 import FootballGameDetail from "../pages/football-game/detail.vue";
 import FootballGameClubs from "../pages/football-game/clubs.vue";
+import Ssq from "../pages/ssq/index.vue";
+import Dlt from "../pages/dlt/index.vue";
 
 const routes = [
   { path: "/", component: Home, meta: { title: "首页" } },
@@ -22,6 +24,16 @@ const routes = [
     path: "/football-game/clubs",
     component: FootballGameClubs,
     meta: { title: "俱乐部维护" },
+  },
+  {
+    path: "/ssq",
+    component: Ssq,
+    meta: { title: "双色球推荐" },
+  },
+  {
+    path: "/dlt",
+    component: Dlt,
+    meta: { title: "大乐透推荐" },
   },
 ];
 

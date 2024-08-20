@@ -7,8 +7,7 @@ import { SEND_URL } from "../../../config/index.js";
 import ClubModel from "../../../schema/Club.js";
 import ServiceModel from "../../../schema/Service.js";
 import FootballGameModel from "../../../schema/FootballGame.js";
-import { getIPAddress } from "../../../utils/index.js";
-import { FORNT_END_PORT } from "../../../../config.js";
+import { FORNT_END_PORT, SERVER_IP } from "../../../../config.js";
 
 let todayGameArr = [];
 let job = null;
@@ -53,7 +52,7 @@ const footballTask = {
   async scheduleTask() {
     let rule = new schedule.RecurrenceRule();
     rule.hour = 17;
-    rule.minute = 1;
+    rule.minute = 0;
     rule.second = 0;
 
     job = schedule.scheduleJob(rule, async () => {
@@ -79,7 +78,7 @@ const footballTask = {
 
         const info = {
           title: `今日比赛`,
-          desp: `http://${getIPAddress()}:${FORNT_END_PORT}/#/football-game/detail?date=${moment().format(
+          desp: `http://${SERVER_IP}:${FORNT_END_PORT}/#/football-game/detail?date=${moment().format(
             "YYYY-MM-DD"
           )}`,
         };
@@ -99,6 +98,10 @@ const footballTask = {
 
       // 更新服务状态
       await ServiceModel.findOneAndUpdate({ id }, { status: true });
+
+      axios.post(SEND_URL, {
+        title: `恭喜-今日足球比赛监听服务已启动`,
+      });
       resolve("start");
     });
   },
