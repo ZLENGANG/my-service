@@ -179,5 +179,4 @@ getData();
   color: blue;
   margin: 0 5px;
 }
-
 </style>

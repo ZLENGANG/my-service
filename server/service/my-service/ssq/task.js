@@ -159,8 +159,8 @@ function handleData(result) {
 const ssqTask = {
   scheduleTask(id) {
     let rule = new schedule.RecurrenceRule();
-    rule.dayOfWeek = [2, 3, 4, 7];
-    rule.hour = 1;
+    rule.dayOfWeek = [2, 4, 7];
+    rule.hour = 18;
     rule.minute = 0;
     rule.second = 0;
     job = schedule.scheduleJob(rule, async () => {
@@ -171,9 +171,7 @@ const ssqTask = {
           await ServiceModel.findOneAndUpdate({ id }, { status: true });
           axios.post(SEND_URL, {
             title: `双色球推荐`,
-            desp: `http://${SERVER_IP}:${FORNT_END_PORT}/#/ssq/detail?date=${moment().format(
-              "YYYY-MM-DD"
-            )}`,
+            desp: `http://${SERVER_IP}:${FORNT_END_PORT}/#/ssq`,
           });
         })
         .catch((err) => {

@@ -145,9 +145,7 @@ const dltTask = {
         await DltModel.create(data);
         axios.post(SEND_URL, {
           title: `大乐透推荐`,
-          desp: `http://${SERVER_IP}:${FORNT_END_PORT}/#/dlt/detail?date=${moment().format(
-            "YYYY-MM-DD"
-          )}`,
+          desp: `http://${SERVER_IP}:${FORNT_END_PORT}/#/dlt`,
         });
       });
     });
