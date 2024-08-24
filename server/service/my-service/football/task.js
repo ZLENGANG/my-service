@@ -49,7 +49,7 @@ const getTodayGameData = (url) => {
 };
 
 const footballTask = {
-  async scheduleTask() {
+  async scheduleTask(id) {
     let rule = new schedule.RecurrenceRule();
     rule.hour = 17;
     rule.minute = 0;
@@ -66,35 +66,46 @@ const footballTask = {
         pTodayGameArr.push(getTodayGameData(url));
       }
 
-      Promise.all(pTodayGameArr).then((res) => {
-        todayGameArr = res
-          .filter((item) => item)
-          .sort((a, b) => {
-            return (
-              new Date(`${a.startTime}`).getTime() -
-              new Date(`${b.startTime}`).getTime()
-            );
+      Promise.all(pTodayGameArr)
+        .then((res) => {
+          todayGameArr = res
+            .filter((item) => item)
+            .sort((a, b) => {
+              return (
+                new Date(`${a.startTime}`).getTime() -
+                new Date(`${b.startTime}`).getTime()
+              );
+            });
+
+          const info = {
+            title: `今日比赛`,
+            desp: `http://${SERVER_IP}:${FORNT_END_PORT}/#/football-game/detail?date=${moment().format(
+              "YYYY-MM-DD"
+            )}`,
+          };
+
+          axios.post(SEND_URL, info);
+          FootballGameModel.create({
+            date: moment().format("YYYY-MM-DD"),
+            game: JSON.stringify(todayGameArr),
           });
-
-        const info = {
-          title: `今日比赛`,
-          desp: `http://${SERVER_IP}:${FORNT_END_PORT}/#/football-game/detail?date=${moment().format(
-            "YYYY-MM-DD"
-          )}`,
-        };
-
-        axios.post(SEND_URL, info);
-        FootballGameModel.create({
-          date: moment().format("YYYY-MM-DD"),
-          game: JSON.stringify(todayGameArr),
+        })
+        .catch((err) => {
+          const info = {
+            title: `今日比赛发送失败`,
+          };
+          axios.post(SEND_URL, info).finally(() => {
+            footballTask.stop({
+              id,
+            });
+          });
         });
-      });
     });
   },
   start({ id }) {
     return new Promise(async (resolve, reject) => {
       // 开启定时任务
-      footballTask.scheduleTask();
+      footballTask.scheduleTask(id);
 
       // 更新服务状态
       await ServiceModel.findOneAndUpdate({ id }, { status: true });

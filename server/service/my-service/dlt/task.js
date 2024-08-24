@@ -140,14 +140,20 @@ const dltTask = {
     rule.minute = 0;
     rule.second = 0;
     job = schedule.scheduleJob(rule, async () => {
-      getData().then(async (result) => {
-        const data = handleData(result);
-        await DltModel.create(data);
-        axios.post(SEND_URL, {
-          title: `大乐透推荐`,
-          desp: `http://${SERVER_IP}:${FORNT_END_PORT}/#/dlt`,
+      getData()
+        .then(async (result) => {
+          const data = handleData(result);
+          await DltModel.create(data);
+          axios.post(SEND_URL, {
+            title: `大乐透推荐`,
+            desp: `http://${SERVER_IP}:${FORNT_END_PORT}/#/dlt`,
+          });
+        })
+        .catch(() => {
+          axios.post(SEND_URL, {
+            title: `大乐透推荐失败`,
+          });
         });
-      });
     });
   },
   start({ id }) {

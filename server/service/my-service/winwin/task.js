@@ -81,7 +81,7 @@ const send = (winwinToken, id) => {
         title: `登录失效，请重新登录`,
         desp: "Error",
       };
-      axios.post(SEND_URL, info).then(() => {
+      axios.post(SEND_URL, info).finally(() => {
         winwinTask.stop({ id });
       });
       console.log(info);
