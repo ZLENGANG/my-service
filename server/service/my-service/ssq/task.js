@@ -159,7 +159,7 @@ function handleData(result) {
 const ssqTask = {
   scheduleTask(id) {
     let rule = new schedule.RecurrenceRule();
-    rule.dayOfWeek = [2, 4, 7];
+    rule.dayOfWeek = [2, 4, 0];
     rule.hour = 18;
     rule.minute = 0;
     rule.second = 0;
