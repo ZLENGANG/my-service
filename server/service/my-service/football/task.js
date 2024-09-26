@@ -11,9 +11,35 @@ import { FORNT_END_PORT, SERVER_IP } from "../../../../config.js";
 
 let todayGameArr = [];
 let job = null;
+
+const getRate = (code) => {
+  return new Promise((resolve) => {
+    superagent
+      .get(`https://live.qtx.com/shengfu/${code}.html`)
+      .end((_err, res) => {
+        if (!_err) {
+          const $ = load(res.text, { decodeEntities: false });
+          const pubilcPath =
+            "body > div.bf-main > div > div.bf-dxq > table.bf-sub-data > tbody > tr:nth-child(2)";
+          const one = $(`${pubilcPath} >td:nth-child(2) > span`).text();
+          const two = $(`${pubilcPath} >td:nth-child(3) > span`).text();
+          const three = $(`${pubilcPath} >td:nth-child(4) > span`).text();
+
+          resolve([one, two, three]);
+        } else {
+          resolve([]);
+        }
+      });
+  });
+};
 const getTodayGameData = (url) => {
   return new Promise((resolve) => {
-    superagent.get(url).end((_err, res) => {
+    superagent.get(url).end(async (_err, res) => {
+      if (_err) {
+        console.log(_err);
+        resolve(null);
+        return;
+      }
       const $ = load(res.text, { decodeEntities: false });
       const firstTrSelector =
         ".game_wrapper .first_part .future_competition > tbody:nth-child(1) > tr:nth-child(3)";
@@ -24,13 +50,15 @@ const getTodayGameData = (url) => {
         tempArr.push($(item).text().trim());
       });
       const filterArr = tempArr.filter((item) => item && item !== "-");
+      const href = $(`${firstTrSelector}> td.tc_schedule_td6 > a`).attr("href");
+
       const arr = [
         {
           round: filterArr[0],
           startTime: filterArr[1],
           teamA: filterArr[2],
           teamB: filterArr[3],
-          href: $(`${firstTrSelector}> td.tc_schedule_td6 > a`).attr("href"),
+          href,
         },
       ];
 
@@ -40,7 +68,14 @@ const getTodayGameData = (url) => {
         return subtract > 0 && subtract <= 15 * 1000 * 60 * 60;
       });
       if (findObj) {
-        resolve(findObj);
+        try {
+          const code = findObj.href.split("/")[4].split(".")[0];
+          const rate = await getRate(code);
+          findObj.rate = rate;
+          resolve(findObj);
+        } catch (error) {
+          resolve(findObj);
+        }
       } else {
         resolve(null);
       }
@@ -124,6 +159,7 @@ const footballTask = {
       resolve("stop");
     });
   },
+   getRate
 };
 
 export default footballTask;

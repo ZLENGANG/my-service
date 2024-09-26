@@ -1,6 +1,5 @@
 import FootballGameModel from "../../../schema/FootballGame.js";
-import ClubModel from "../../../schema/Club.js";
-
+import footballTask from "./task.js";
 const footballService = {
   // 获取足球信息列表
   async getFootballGameList(req, res, next) {
@@ -31,6 +30,21 @@ const footballService = {
       res.json({
         code: 200,
         data: result || {},
+      });
+    } catch (error) {
+      res.json({ code: 500, message: error.message });
+    }
+  },
+
+  // 查询赔率
+  async getFootballGameRate(req, res, next) {
+    const { code } = req.query;
+
+    try {
+      const result = await footballTask.getRate(code);
+      res.json({
+        code: 200,
+        data: result || [],
       });
     } catch (error) {
       res.json({ code: 500, message: error.message });

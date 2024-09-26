@@ -28,6 +28,10 @@ myServiceRouter.get(`/footballGame/detail`, (req, res, next) => {
   footballService.getFootballGameDetailByDate(req, res, next);
 });
 
+myServiceRouter.get(`/footballGame/rate`, (req, res, next) => {
+  footballService.getFootballGameRate(req, res, next);
+});
+
 myServiceRouter.get(`/footballGame/clubs/list`, (req, res, next) => {
   clubService.getClubList(req, res, next);
 });
@@ -51,7 +55,6 @@ myServiceRouter.get(`/dlt/list`, (req, res, next) => {
 myServiceRouter.get(`/dlt/detail`, (req, res, next) => {
   dltService.getDltDetailByDate(req, res, next);
 });
-
 
 myServiceRouter.get(`/ssq/list`, (req, res, next) => {
   ssqService.getSsqList(req, res, next);

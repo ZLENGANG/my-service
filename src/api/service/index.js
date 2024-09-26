@@ -20,6 +20,10 @@ export const getFootballGameDetailByDate = (params) => {
   return $http.get("/my-service/footballGame/detail", { params });
 };
 
+export const getFootballGameRate = (code) => {
+  return $http.get("/my-service/footballGame/rate?code=" + code);
+};
+
 export const getClubList = (params) => {
   return $http.get("/my-service/footballGame/clubs/list", { params });
 };
@@ -43,7 +47,6 @@ export const getDltList = (params) => {
 export const getDltDetail = (params) => {
   return $http.get("/my-service/dlt/detail", params);
 };
-
 
 export const getSsqList = (params) => {
   return $http.get("/my-service/ssq/list", params);
