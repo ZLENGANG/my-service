@@ -1,6 +1,12 @@
 <template>
   <div class="container">
     <h1>今日比赛</h1>
+    <div>
+      每场比赛买10元，总计投入
+      <span>{{ 10 * data.length }}</span>
+      元，最多可赢
+      <span>{{ (sum * 10).toFixed(2) }}</span>
+    </div>
     <n-data-table :columns="columns" :data="data" striped />
   </div>
 
@@ -10,7 +16,7 @@
     :show-icon="false"
     preset="dialog"
     title="比赛详情"
-    style="width: 90%;"
+    style="width: 90%"
   >
     <span>即时赔率：{{ tips }}</span>
     <iframe :src="iframeSrc"></iframe>
@@ -31,6 +37,14 @@ const isShowIFrameDialog = ref(false);
 const iframeSrc = ref("");
 
 const columns = [
+  {
+    title: "序号",
+    width: 50,
+    align: "center",
+    render: (text, record, index) => {
+      return record + 1;
+    },
+  },
   {
     title: "时间",
     key: "startTime",
@@ -82,11 +96,25 @@ const route = useRoute();
 const date = route.query.date || moment().format("YYYY-MM-DD");
 const data = ref([]);
 const tips = ref("");
+let sum = ref(0);
+
+function uniqueObjectsByProperty(arr, property) {
+  const seen = new Set();
+  return arr.filter((item) => {
+    const key = item[property];
+    return seen.has(key) ? false : seen.add(key);
+  });
+}
 
 getFootballGameDetailByDate({ date }).then((res) => {
   const game = JSON.parse(res.data?.game || "[]");
-  console.log(game);
-  data.value = game;
+  const _game = uniqueObjectsByProperty(game, "teamA");
+  data.value = _game;
+
+  _game.forEach((item) => {
+    const rateMin = Math.min(item.rate[0], item.rate[1], item.rate[2]);
+    sum.value += rateMin - 1;
+  });
 });
 </script>
 

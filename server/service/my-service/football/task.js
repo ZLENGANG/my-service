@@ -32,11 +32,11 @@ const getRate = (code) => {
       });
   });
 };
-const getTodayGameData = (url) => {
+const getTodayGameData = (url, club) => {
   return new Promise((resolve) => {
     superagent.get(url).end(async (_err, res) => {
       if (_err) {
-        console.log(_err);
+        console.log("getTodayGameData error!", club);
         resolve(null);
         return;
       }
@@ -96,45 +96,55 @@ const footballTask = {
       const clubs = _clubs.filter((item) => !item.disabled);
       const pTodayGameArr = [];
 
-      for (let i = 0; i < clubs.length; i++) {
-        const url = `https://data.qtx.com/qiudui/${clubs[i].id}.html`;
-        pTodayGameArr.push(getTodayGameData(url));
-      }
+      let index = 0;
+      let timer = null;
+      timer = setInterval(() => {
+        const url = `https://data.qtx.com/qiudui/${clubs[index].id}.html`;
+        pTodayGameArr.push(getTodayGameData(url, clubs[index].club));
+        index++;
 
-      Promise.all(pTodayGameArr)
-        .then((res) => {
-          todayGameArr = res
-            .filter((item) => item)
-            .sort((a, b) => {
-              return (
-                new Date(`${a.startTime}`).getTime() -
-                new Date(`${b.startTime}`).getTime()
-              );
+        if (index === clubs.length) {
+          clearInterval(timer);
+        }
+      }, 2000);
+
+      setTimeout(() => {
+        clearInterval(timer);
+        Promise.all(pTodayGameArr)
+          .then((res) => {
+            todayGameArr = res
+              .filter((item) => item)
+              .sort((a, b) => {
+                return (
+                  new Date(`${a.startTime}`).getTime() -
+                  new Date(`${b.startTime}`).getTime()
+                );
+              });
+
+            const info = {
+              title: `今日比赛`,
+              desp: `http://${SERVER_IP}:${FORNT_END_PORT}/#/football-game/detail?date=${moment().format(
+                "YYYY-MM-DD"
+              )}`,
+            };
+
+            axios.post(SEND_URL, info);
+            FootballGameModel.create({
+              date: moment().format("YYYY-MM-DD"),
+              game: JSON.stringify(todayGameArr),
             });
-
-          const info = {
-            title: `今日比赛`,
-            desp: `http://${SERVER_IP}:${FORNT_END_PORT}/#/football-game/detail?date=${moment().format(
-              "YYYY-MM-DD"
-            )}`,
-          };
-
-          axios.post(SEND_URL, info);
-          FootballGameModel.create({
-            date: moment().format("YYYY-MM-DD"),
-            game: JSON.stringify(todayGameArr),
-          });
-        })
-        .catch((err) => {
-          const info = {
-            title: `今日比赛发送失败`,
-          };
-          axios.post(SEND_URL, info).finally(() => {
-            footballTask.stop({
-              id,
+          })
+          .catch((err) => {
+            const info = {
+              title: `今日比赛发送失败`,
+            };
+            axios.post(SEND_URL, info).finally(() => {
+              footballTask.stop({
+                id,
+              });
             });
           });
-        });
+      }, 2200 * clubs.length);
     });
   },
   start({ id }) {
@@ -159,7 +169,7 @@ const footballTask = {
       resolve("stop");
     });
   },
-   getRate
+  getRate,
 };
 
 export default footballTask;
