@@ -10,6 +10,7 @@
     :show-icon="false"
     preset="dialog"
     title="比赛详情"
+    style="width: 90%;"
   >
     <span>即时赔率：{{ tips }}</span>
     <iframe :src="iframeSrc"></iframe>
