@@ -37,6 +37,17 @@
         </n-form-item>
       </n-form>
     </n-modal>
+
+    <n-modal
+      v-model:show="isShowIFrameDialog"
+      :mask-closable="false"
+      :show-icon="false"
+      preset="dialog"
+      title="俱乐部详情"
+      style="width: 90%"
+    >
+      <iframe :src="iframeSrc"></iframe>
+    </n-modal>
   </div>
 </template>
 
@@ -57,6 +68,9 @@ import { reactive, ref, h } from "vue";
 
 const message = useMessage();
 const dialog = useDialog();
+const isShowIFrameDialog = ref(false);
+const iframeSrc = ref("");
+
 const columns = ref([
   {
     title: "序号",
@@ -69,8 +83,39 @@ const columns = ref([
   {
     title: "俱乐部",
     key: "club",
+    render(row) {
+      return h(
+        "a",
+        {
+          href: ``,
+          onClick: (e) => {
+            e.preventDefault();
+            iframeSrc.value = `https://data.qtx.com/qiudui/${row.id}.html`;
+            isShowIFrameDialog.value = true;
+          },
+        },
+        `${row.club}`
+      );
+    },
   },
   { title: "俱乐部ID", key: "id" },
+  {
+    title: "链接",
+    key: "url",
+    render(row) {
+      return h(
+        "a",
+        {
+          href: `https://data.qtx.com/qiudui/${row.id}.html`,
+          onClick: (e) => {
+            e.preventDefault();
+            window.open(`https://data.qtx.com/qiudui/${row.id}.html`, "_blank");
+          },
+        },
+        `https://data.qtx.com/qiudui/${row.id}.html`
+      );
+    },
+  },
   {
     title: "状态",
     key: "disabled",
@@ -220,5 +265,11 @@ getData();
 <style scoped>
 .container {
   margin: 20px;
+}
+
+iframe {
+  width: 100%;
+  height: 100vh;
+  border: none;
 }
 </style>

@@ -60,7 +60,7 @@ const columns = [
       return h(
         "span",
         {},
-        `主${row.rate[0]}--和${row.rate[1]}--客${row.rate[2]}`
+        `主${row.rate?.[0]}--和${row.rate?.[1]}--客${row.rate?.[2]}`
       );
     },
   },
@@ -74,7 +74,7 @@ const columns = [
           href: row.href,
           onClick: (e) => {
             e.preventDefault();
-            tips.value = `主${row.rate[0]}--和${row.rate[1]}--客${row.rate[2]}`;
+            tips.value = `主${row.rate?.[0]}--和${row.rate?.[1]}--客${row.rate?.[2]}`;
             getFootballGameRate(row.href.split("/")[4].split(".")[0]).then(
               (res) => {
                 if (res.data.length) {
@@ -111,10 +111,13 @@ getFootballGameDetailByDate({ date }).then((res) => {
   const _game = uniqueObjectsByProperty(game, "teamA");
   data.value = _game;
 
-  _game.forEach((item) => {
-    const rateMin = Math.min(item.rate[0], item.rate[1], item.rate[2]);
-    sum.value += rateMin - 1;
-  });
+  if (_game[0].rate) {
+
+    _game.forEach((item) => {
+      const rateMin = Math.min(item.rate[0], item.rate[1], item.rate[2]);
+      sum.value += rateMin - 1;
+    });
+  }
 });
 </script>
 
