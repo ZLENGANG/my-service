@@ -12,7 +12,7 @@
 import { getServiceList, changeServiceStatusById } from "@/api/service";
 import { NDataTable, NSwitch, NButton, useMessage, useDialog } from "naive-ui";
 import { reactive, ref, h } from "vue";
-import { NEED_TOKEN_ID_ARR } from "../../../config.js";
+import { NEED_TOKEN_ID_ARR } from "../../../config";
 
 const message = useMessage();
 const dialog = useDialog();

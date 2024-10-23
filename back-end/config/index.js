@@ -76,4 +76,8 @@ export const WINWIN_MAP = {
 
 // 排除耗时很久的游戏
 export const EXCLUDE_GAME_ARR = ["F3D", "HK6", "PL3", "PL5", "FKL8", "TWDLT"];
- 
+
+// 需要token的服务
+export const NEED_TOKEN_ID_ARR = ["winwin"];
+
+export const SERVER_ADDRESS = "http://roninz.xyz";

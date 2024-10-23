@@ -3,7 +3,7 @@ import footballTask from "./football/task.js";
 import winwinTask from "./winwin/task.js";
 import dltTask from "./dlt/task.js";
 import ssqTask from "./ssq/task.js";
-import { NEED_TOKEN_ID_ARR } from "../../../config.js";
+import { NEED_TOKEN_ID_ARR } from "../../config/index.js";
 
 const task = {
   "football-game": footballTask,

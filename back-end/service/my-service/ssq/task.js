@@ -5,7 +5,6 @@ import moment from "moment";
 import SsqModel from "../../../schema/Ssq.js";
 import ServiceModel from "../../../schema/Service.js";
 import { SEND_URL } from "../../../config/index.js";
-import { FORNT_END_PORT, SERVER_IP } from "../../../../config.js";
 import { load } from "cheerio";
 import superagent from "superagent";
 import SsqDataModel from "../../../schema/SsqData.js";
@@ -170,14 +169,14 @@ const ssqTask = {
           await SsqModel.create(data);
           axios.post(SEND_URL, {
             title: `双色球推荐`,
-            desp: `http://${SERVER_IP}:${FORNT_END_PORT}/#/ssq`,
+            desp: `${SERVER_ADDRESS}/#/ssq`,
           });
         })
         .catch((err) => {
           console.log(err);
           axios.post(SEND_URL, {
             title: `双色球爬取数据失败`,
-            desp: `http://${SERVER_IP}:${FORNT_END_PORT}`,
+            desp: `双色球爬取数据失败`,
           });
           ssqTask.stop({ id });
         });

@@ -5,7 +5,7 @@ import moment from "moment";
 import DltModel from "../../../schema/Dlt.js";
 import ServiceModel from "../../../schema/Service.js";
 import { SEND_URL } from "../../../config/index.js";
-import { FORNT_END_PORT, SERVER_IP } from "../../../../config.js";
+import { SERVER_ADDRESS } from "../../../config/index.js";
 
 const redAllArr = [
   "01",
@@ -146,7 +146,7 @@ const dltTask = {
           await DltModel.create(data);
           axios.post(SEND_URL, {
             title: `大乐透推荐`,
-            desp: `http://${SERVER_IP}:${FORNT_END_PORT}/#/dlt`,
+            desp: `${SERVER_ADDRESS}/#/dlt`,
           });
         })
         .catch(() => {

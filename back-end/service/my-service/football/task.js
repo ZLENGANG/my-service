@@ -3,11 +3,10 @@ import axios from "axios";
 import superagent from "superagent";
 import { load } from "cheerio";
 import moment from "moment";
-import { SEND_URL } from "../../../config/index.js";
+import { SEND_URL, SERVER_ADDRESS } from "../../../config/index.js";
 import ClubModel from "../../../schema/Club.js";
 import ServiceModel from "../../../schema/Service.js";
 import FootballGameModel from "../../../schema/FootballGame.js";
-import { FORNT_END_PORT, SERVER_IP } from "../../../../config.js";
 
 let todayGameArr = [];
 let job = null;
@@ -123,7 +122,7 @@ const footballTask = {
 
             const info = {
               title: `今日比赛`,
-              desp: `http://${SERVER_IP}:${FORNT_END_PORT}/#/football-game/detail?date=${moment().format(
+              desp: `${SERVER_ADDRESS}/#/football-game/detail?date=${moment().format(
                 "YYYY-MM-DD"
               )}`,
             };

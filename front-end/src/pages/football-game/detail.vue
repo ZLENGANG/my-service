@@ -109,14 +109,17 @@ function uniqueObjectsByProperty(arr, property) {
 getFootballGameDetailByDate({ date }).then((res) => {
   const game = JSON.parse(res.data?.game || "[]");
   const _game = uniqueObjectsByProperty(game, "teamA");
-  data.value = _game;
 
   if (_game[0].rate) {
-
-    _game.forEach((item) => {
-      const rateMin = Math.min(item.rate[0], item.rate[1], item.rate[2]);
-      sum.value += rateMin - 1;
-    });
+    data.value = _game
+      .map((item) => {
+        const rateMin = Math.min(item.rate[0], item.rate[1], item.rate[2]);
+        if (rateMin > 1.1) {
+          sum.value += rateMin - 1;
+          return item;
+        }
+      })
+      .filter((item) => item);
   }
 });
 </script>
