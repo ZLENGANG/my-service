@@ -1,5 +1,6 @@
 import { createWebHashHistory, createRouter } from "vue-router";
 import Home from "../pages/home/index.vue";
+import Login from "../pages/login/index.vue";
 import Winwin from "../pages/winwin/index.vue";
 import FootballGame from "../pages/football-game/index.vue";
 import FootballGameDetail from "../pages/football-game/detail.vue";
@@ -9,6 +10,8 @@ import Dlt from "../pages/dlt/index.vue";
 
 const routes = [
   { path: "/", component: Home, meta: { title: "首页" } },
+  { path: "/login", component: Login, meta: { title: "登录" } },
+
   { path: "/winwin", component: Winwin, meta: { title: "双赢彩票" } },
   {
     path: "/football-game",
@@ -45,6 +48,9 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   if (to.meta.title) {
     document.title = to.meta.title;
+  }
+  if (to.path !== "/login" && !localStorage.getItem("token")) {
+    next("login");
   }
   next();
 });

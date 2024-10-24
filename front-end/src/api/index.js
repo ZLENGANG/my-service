@@ -7,8 +7,22 @@ const $http = axios.create({
   timeout: 1000 * 60,
 });
 
+$http.interceptors.request.use(
+  (config) => {
+    config.headers.authorization = localStorage.getItem("token");
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 $http.interceptors.response.use(
   (response) => {
+    if (response.data.code == 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/";
+    }
     return response.data;
   },
   (error) => {

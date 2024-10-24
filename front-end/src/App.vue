@@ -17,4 +17,11 @@ import {
 import { ref } from "vue";
 const locale = ref(zhCN);
 </script>
-<style scoped></style>
+<style>
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+}
+</style>
