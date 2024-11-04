@@ -22,7 +22,6 @@ export const verifyToken = function (req, res, next) {
       console.log("token校验失败", err);
       return res.json({ code: 401, msg: "登录已失效" });
     }
-    console.log("token校验成功", decoded);
     next();
   });
 };

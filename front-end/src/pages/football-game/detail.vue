@@ -2,11 +2,15 @@
   <div class="container">
     <h1>今日比赛</h1>
     <div>
-      每场比赛买10元，总计投入
-      <span>{{ 10 * data.length }}</span>
+      每场比赛买1000元，总计投入
+      <span>{{ 1000 * data.length }}</span>
       元，最多可赢
-      <span>{{ (sum * 10).toFixed(2) }}</span>
+      <span>{{ (sum * 1000).toFixed(2) }}</span>
     </div>
+
+    <div>筛选</div>
+    <n-switch v-model:value="isFilter" @update:value="handleFilter" />
+
     <n-data-table :columns="columns" :data="data" striped />
   </div>
 
@@ -31,10 +35,11 @@ import {
   getFootballGameRate,
 } from "@/api/service";
 import { ref, h } from "vue";
-import { NDataTable, NModal } from "naive-ui";
+import { NDataTable, NModal, NSwitch } from "naive-ui";
 
 const isShowIFrameDialog = ref(false);
 const iframeSrc = ref("");
+const isFilter = ref(false);
 
 const columns = [
   {
@@ -97,6 +102,11 @@ const date = route.query.date || moment().format("YYYY-MM-DD");
 const data = ref([]);
 const tips = ref("");
 let sum = ref(0);
+let originData = [];
+
+const handleFilter = (val) => {
+  getData();
+};
 
 function uniqueObjectsByProperty(arr, property) {
   const seen = new Set();
@@ -106,20 +116,31 @@ function uniqueObjectsByProperty(arr, property) {
   });
 }
 
+function getData() {
+  sum.value = 0;
+  data.value = originData.filter((item) => {
+    const rateMin = Math.min(item.rate[0], item.rate[1], item.rate[2]);
+    if (isFilter.value) {
+      if (rateMin > 1.1) {
+        sum.value += rateMin - 1;
+        return true;
+      }
+    } else {
+      sum.value += rateMin - 1;
+      return true;
+    }
+  });
+}
+
 getFootballGameDetailByDate({ date }).then((res) => {
   const game = JSON.parse(res.data?.game || "[]");
-  const _game = uniqueObjectsByProperty(game, "teamA");
+  let _game = uniqueObjectsByProperty(game, "teamA");
 
   if (_game[0].rate) {
-    data.value = _game
-      .map((item) => {
-        const rateMin = Math.min(item.rate[0], item.rate[1], item.rate[2]);
-        if (rateMin > 1.1) {
-          sum.value += rateMin - 1;
-          return item;
-        }
-      })
-      .filter((item) => item);
+    _game = _game.filter((item) => item.rate[0] !== "-");
+    originData = JSON.parse(JSON.stringify(_game));
+
+    getData();
   }
 });
 </script>
