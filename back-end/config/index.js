@@ -13,7 +13,7 @@ export const SEND_KEY = "SCT252192TnpgEYho5O5EPR0f4Fegi6jht";
 export const SEND_URL = `https://sctapi.ftqq.com/${SEND_KEY}.send`;
 
 // 我的服务发送链接
-export const MY_SEND_URL = "http://103.143.72.25:1998/sendMsg";
+export const MY_SEND_URL = "http://roninz.xyz:1998/sendMsg";
 
 // 双赢彩票游戏配置
 export const WINWIN_MAP = {
