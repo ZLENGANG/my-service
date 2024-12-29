@@ -7,6 +7,9 @@ import FootballGameDetail from "../pages/football-game/detail.vue";
 import FootballGameClubs from "../pages/football-game/clubs.vue";
 import Ssq from "../pages/ssq/index.vue";
 import Dlt from "../pages/dlt/index.vue";
+import LeaguesTop4Game from "../pages/leagues-top4-game/index.vue";
+import LeaguesTop4GameDetail from "../pages/leagues-top4-game/detail.vue";
+import LeaguesManage from "../pages/leagues-top4-game/leagues.vue";
 
 const routes = [
   { path: "/", component: Home, meta: { title: "首页" } },
@@ -38,6 +41,21 @@ const routes = [
     component: Dlt,
     meta: { title: "大乐透推荐" },
   },
+  {
+    path: "/leagues-top4-game",
+    component: LeaguesTop4Game,
+    meta: { title: "联赛排名前四和后四的比赛" },
+  },
+  {
+    path: "/leagues-top4-game/detail",
+    component: LeaguesTop4GameDetail,
+    meta: { title: "联赛排名前四和后四的比赛-详情" },
+  },
+  {
+    path: "/leagues-top4-game/leagues",
+    component: LeaguesManage,
+    meta: { title: "联赛维护" },
+  },
 ];
 
 const router = createRouter({
@@ -47,7 +65,7 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   if (to.meta.title) {
-    document.title = to.meta.title;
+    document.title = "roninz的个人空间 | " + to.meta.title;
   }
   if (to.path !== "/login" && !localStorage.getItem("token")) {
     next("login");

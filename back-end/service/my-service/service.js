@@ -3,6 +3,7 @@ import footballTask from "./football/task.js";
 import winwinTask from "./winwin/task.js";
 import dltTask from "./dlt/task.js";
 import ssqTask from "./ssq/task.js";
+import leaguesTop4GameTask from "./leagues/task.js";
 import { NEED_TOKEN_ID_ARR } from "../../config/index.js";
 
 const task = {
@@ -10,6 +11,7 @@ const task = {
   winwin: winwinTask,
   dlt: dltTask,
   ssq: ssqTask,
+  "leagues-top4-game": leaguesTop4GameTask,
 };
 
 const myService = {

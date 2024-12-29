@@ -5,6 +5,8 @@ import footballService from "../service/my-service/football/index.js";
 import clubService from "../service/my-service/football/club.js";
 import dltService from "../service/my-service/dlt/index.js";
 import ssqService from "../service/my-service/ssq/index.js";
+import leaguesService from "../service/my-service/leagues/leagues.js";
+import leaguesTop4GameService from "../service/my-service/leagues/index.js";
 
 const myServiceRouter = express.Router();
 
@@ -46,6 +48,30 @@ myServiceRouter.post(`/footballGame/clubs/update`, (req, res, next) => {
 
 myServiceRouter.post(`/footballGame/clubs/delete`, (req, res, next) => {
   clubService.deleteClub(req, res, next);
+});
+
+myServiceRouter.get(`/footballGame/leagues/list`, (req, res, next) => {
+  leaguesService.getLeaguesList(req, res, next);
+});
+
+myServiceRouter.post(`/footballGame/leagues/add`, (req, res, next) => {
+  leaguesService.addLeagues(req, res, next);
+});
+
+myServiceRouter.post(`/footballGame/leagues/update`, (req, res, next) => {
+  leaguesService.updateLeagues(req, res, next);
+});
+
+myServiceRouter.post(`/footballGame/leagues/delete`, (req, res, next) => {
+  leaguesService.deleteLeagues(req, res, next);
+});
+
+myServiceRouter.get(`/leaguesTop4/list`, (req, res, next) => {
+  leaguesTop4GameService.getLeaguesTop4GameList(req, res, next);
+});
+
+myServiceRouter.get(`/leaguesTop4/detail`, (req, res, next) => {
+  leaguesTop4GameService.getLeaguesTop4GameDetailByDate(req, res, next);
 });
 
 myServiceRouter.get(`/dlt/list`, (req, res, next) => {

@@ -8,6 +8,7 @@ import { SEND_URL } from "../../../config/index.js";
 import { load } from "cheerio";
 import superagent from "superagent";
 import SsqDataModel from "../../../schema/SsqData.js";
+import { SERVER_ADDRESS } from "../../../config/index.js";
 
 const redAllArr = [
   "01",

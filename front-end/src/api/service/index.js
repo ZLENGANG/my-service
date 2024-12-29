@@ -40,6 +40,30 @@ export const deleteClub = (params) => {
   return $http.post("/my-service/footballGame/clubs/delete", params);
 };
 
+export const getLeaguesList = (params) => {
+  return $http.get("/my-service/footballGame/leagues/list", { params });
+};
+
+export const addLeagues = (params) => {
+  return $http.post("/my-service/footballGame/leagues/add", params);
+};
+
+export const updateLeagues = (params) => {
+  return $http.post("/my-service/footballGame/leagues/update", params);
+};
+
+export const deleteLeagues = (params) => {
+  return $http.post("/my-service/footballGame/leagues/delete", params);
+};
+
+export const getLeaguesTop4GameList = (params) => {
+  return $http.get("/my-service/leaguesTop4/list", params);
+};
+
+export const getLeaguesTop4GameDetailByDate = (params) => {
+  return $http.get("/my-service/leaguesTop4/detail", {params});
+};
+
 export const getDltList = (params) => {
   return $http.get("/my-service/dlt/list", params);
 };

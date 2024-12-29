@@ -44,7 +44,7 @@ const getTodayGameData = (url, club) => {
         ".game_wrapper .first_part .future_competition > tbody:nth-child(1) > tr:nth-child(3)";
       const firstTrDom = $(firstTrSelector);
       const tempArr = [];
-      const childrenArr = firstTrDom[0].children;
+      const childrenArr = firstTrDom[0]?.children || [];
       childrenArr.forEach((item) => {
         tempArr.push($(item).text().trim());
       });
@@ -86,7 +86,7 @@ const footballTask = {
   async scheduleTask(id) {
     let rule = new schedule.RecurrenceRule();
     rule.hour = 17;
-    rule.minute = 0;
+    rule.minute = 15;
     rule.second = 0;
 
     job = schedule.scheduleJob(rule, async () => {

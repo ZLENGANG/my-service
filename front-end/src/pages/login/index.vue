@@ -12,7 +12,7 @@
           <label for="">password</label>
         </div>
         <button class="btn">
-          submit
+          login
           <span></span>
           <span></span>
           <span></span>
@@ -21,6 +21,16 @@
       </form>
     </div>
   </div>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2024 Roninz. All rights reserved.</p>
+      <a href="https://beian.miit.gov.cn/" target="_blank"
+        >备案号: 湘ICP备2024076248号-1</a
+      >
+      <!-- <p>公网安备: 京公网安备123456789012345678号</p> -->
+    </div>
+  </footer>
 </template>
 
 <script setup>
@@ -209,5 +219,18 @@ h2 {
   100% {
     top: -100%;
   }
+}
+
+footer {
+  color: #fff;
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+footer a {
+  color: #fff;
 }
 </style>
