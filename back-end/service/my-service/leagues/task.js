@@ -22,7 +22,7 @@ function isInnerTime(startTime) {
   const timeStamp = new Date(`${startTime}`).getTime();
   const subtract = timeStamp - new Date().getTime();
   // return subtract > 0 && subtract <= 24 * 1000 * 60 * 60 * 3;
-  return subtract > 0 && subtract <= 15 * 1000 * 60 * 60;
+  return subtract >= 0 && subtract < 24 * 1000 * 60 * 60;
 }
 
 /**获取联赛赢球最多的球队和输球最多的球队，分别取前四个 */
@@ -145,6 +145,7 @@ const getLatelyGame = (teamInfo) => {
       resolve({
         gameUrl: href,
         leagueName: filterArr[0],
+        leaguesName: teamInfo.leaguesName,
         startTime: filterArr[1],
         teamA: filterArr[2],
         teamB: filterArr[3],
@@ -163,7 +164,10 @@ const getWinTopAndDefeatTopLatelyGame = (leaguesInfo) => {
       const pArr = [];
       let resArr = [];
       res.winTopArr.forEach((item) => {
-        const lastGame = getLatelyGame(item);
+        const lastGame = getLatelyGame({
+          ...item,
+          leaguesName: leaguesInfo.name,
+        });
         if (lastGame) {
           pArr.push(lastGame);
         }
@@ -192,6 +196,92 @@ const getWinTopAndDefeatTopLatelyGame = (leaguesInfo) => {
   });
 };
 
+/**传入比赛信息，获取最近五场比赛结果 */
+export const getLatelyFiveGameResult = (gameInfo, type) => {
+  const gameCode = getCode(gameInfo.gameUrl);
+  return new Promise((resolve) => {
+    superagent
+      .get(`https://live.qtx.com/fenxi/${gameCode}.html`)
+      .end((_err, res) => {
+        if (!_err) {
+          const $ = load(res.text, { decodeEntities: false });
+          const mainLatelyGames = [];
+          const guestLatelyGames = [];
+          let mainTrs = $(
+            "body > div.bf-main > div > div:nth-child(13) > div.bf-data-tb > table > tbody > tr"
+          );
+          let guestTrs = $(
+            "body > div.bf-main > div > div:nth-child(14) > div.bf-data-tb > table > tbody > tr"
+          );
+
+          if (mainTrs.length === 0) {
+            mainTrs = $(
+              "body > div.bf-main > div > div:nth-child(11) > div.bf-data-tb > table > tbody > tr"
+            );
+            guestTrs = $(
+              "body > div.bf-main > div > div:nth-child(12) > div.bf-data-tb > table > tbody > tr"
+            );
+          }
+
+          const mainGoalCount = $(
+            "body > div.bf-main > div > div.bf-top-data > table > tbody > tr:nth-child(2) > td:nth-child(3) > div > i:nth-child(1)"
+          ).text();
+          const guestGoalCount = $(
+            "body > div.bf-main > div > div.bf-top-data > table > tbody > tr:nth-child(2) > td:nth-child(3) > div > i:nth-child(3)"
+          ).text();
+
+          for (let i = 0; i < mainTrs.length; i++) {
+            const gameName = $(mainTrs[i].children[1]).text();
+            const gameResult = $(mainTrs[i].children[25]).text();
+            mainLatelyGames.push({
+              gameName,
+              gameResult,
+            });
+          }
+
+          for (let i = 0; i < guestTrs.length; i++) {
+            const gameName = $(guestTrs[i].children[1]).text();
+            const gameResult = $(guestTrs[i].children[25]).text();
+            guestLatelyGames.push({
+              gameName,
+              gameResult,
+            });
+          }
+
+          const leaguesName = gameInfo.leaguesName || gameInfo.leagueName;
+
+          const filterMainArr = mainLatelyGames
+            .filter((item) => item.gameName === leaguesName)
+            .map((item) => item.gameResult)
+            .slice(0, 5);
+
+          const filterGuestArr = guestLatelyGames
+            .filter((item) => item.gameName === leaguesName)
+            .map((item) => item.gameResult)
+            .slice(0, 5);
+
+          resolve({
+            ...(type
+              ? {
+                  ...gameInfo,
+                  mainGoalCount,
+                  guestGoalCount,
+                }
+              : {}),
+            teamALastFive: filterMainArr,
+            teamBLastFive: filterGuestArr,
+          });
+        } else {
+          console.log("error", _err);
+          resolve({
+            teamALastFive: [],
+            teamBLastFive: [],
+          });
+        }
+      });
+  });
+};
+
 /**传入比赛code获取比赛赔率 */
 const getRatebyGameInfo = (gameInfo) => {
   const gameCode = getCode(gameInfo.gameUrl);
@@ -207,10 +297,20 @@ const getRatebyGameInfo = (gameInfo) => {
           const two = $(`${pubilcPath} >td:nth-child(3) > span`).text();
           const three = $(`${pubilcPath} >td:nth-child(4) > span`).text();
 
-          resolve({
-            ...gameInfo,
-            rate: [one, two, three],
-          });
+          getLatelyFiveGameResult(gameInfo)
+            .then((res) => {
+              resolve({
+                ...res,
+                ...gameInfo,
+                rate: [one, two, three],
+              });
+            })
+            .catch(() => {
+              resolve({
+                ...gameInfo,
+                rate: [one, two, three],
+              });
+            });
 
           console.log(
             `\n${gameInfo.teamA}-${gameInfo.teamB} 比赛赔率：${one}-${two}-${three}`

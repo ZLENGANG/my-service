@@ -34,6 +34,25 @@ const leaguesTop4GameService = {
       res.json({ code: 500, message: error.message });
     }
   },
+
+  // 更新当日足球信息
+  async updateGameInfoById(req, res, next) {
+    const data = req.body;
+    try {
+      await LeaguesGameModel.findOneAndUpdate(
+        { _id: data._id },
+        {
+          game: data.game,
+        }
+      );
+      res.json({
+        code: 200,
+        message: "ok",
+      });
+    } catch (error) {
+      res.json({ code: 500, message: error.message });
+    }
+  },
 };
 
 export default leaguesTop4GameService;
