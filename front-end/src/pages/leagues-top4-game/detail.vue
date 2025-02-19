@@ -11,7 +11,9 @@
     <div>筛选</div>
     <n-switch v-model:value="isFilter" @update:value="handleFilter" />
 
-    <n-button type="primary" @click="getLeast5GamesResult">更新</n-button>
+    <n-button :loading="loading" type="primary" @click="getLeast5GamesResult"
+      >更新</n-button
+    >
 
     <n-data-table :columns="columns" :data="data" striped />
   </div>
@@ -155,6 +157,7 @@ const tips = ref("");
 let sum = ref(0);
 let originData = [];
 const id = ref("");
+const loading = ref(false);
 
 const handleFilter = (val) => {
   getData();
@@ -271,17 +274,24 @@ getLeaguesTop4GameDetailByDate({ date: date.value }).then(async (res) => {
 
     getData();
   }
+  console.log(originData);
 });
 
 const getLeast5GamesResult = async () => {
-  const res = await getLatelyFiveGameResult(originData);
-  updateGameInfo({
-    _id: id.value,
-    game: JSON.stringify(res.list),
-  });
-  console.log(res, "zlzl");
-  originData = res.list;
-  getData();
+  try {
+    loading.value = true;
+    const res = await getLatelyFiveGameResult(originData);
+    originData = res.list;
+    getData();
+    const game = JSON.stringify(data.value);
+    await updateGameInfo({
+      date: date.value,
+      game,
+    });
+    loading.value = false;
+  } catch (error) {
+    loading.value = false;
+  }
 };
 
 // getData();
