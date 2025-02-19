@@ -40,7 +40,7 @@ const leaguesTop4GameService = {
     const data = req.body;
     try {
       await LeaguesGameModel.findOneAndUpdate(
-        { _id: data._id },
+        { date: data.date },
         {
           game: data.game,
         }
