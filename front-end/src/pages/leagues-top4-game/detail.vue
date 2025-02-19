@@ -11,6 +11,8 @@
     <div>筛选</div>
     <n-switch v-model:value="isFilter" @update:value="handleFilter" />
 
+    <n-button type="primary" @click="getLeast5GamesResult">更新</n-button>
+
     <n-data-table :columns="columns" :data="data" striped />
   </div>
 
@@ -33,9 +35,11 @@ import moment from "moment";
 import {
   getLeaguesTop4GameDetailByDate,
   getFootballGameRate,
+  updateGameInfo,
 } from "@/api/service";
-import { ref, h, render } from "vue";
-import { NDataTable, NModal, NSwitch } from "naive-ui";
+import { ref, h, render, computed } from "vue";
+import { NDataTable, NModal, NSwitch, NButton } from "naive-ui";
+import { getLatelyFiveGameResult } from "../../api/service";
 
 const isShowIFrameDialog = ref(false);
 const iframeSrc = ref("");
@@ -117,20 +121,40 @@ const columns = [
           style: {
             cursor: "pointer",
             "text-decoration": "underline",
+            color: row.isMore4Defeat ? "red" : "",
           },
         },
-        `${row.teamA}(${teamAInfo.winCount} | ${teamAInfo.drawCount} | ${teamAInfo.defeatCount}) vs
-         ${row.teamB}(${teamBInfo.winCount} | ${teamBInfo.drawCount} | ${teamBInfo.defeatCount})`
+        `${row.teamA}(${teamAInfo.winCount} | ${teamAInfo.drawCount} | ${
+          teamAInfo.defeatCount
+        }) ${row.teamALastFive ? "(" + row.teamALastFive + ")" : ""} vs
+         ${row.teamB}(${teamBInfo.winCount} | ${teamBInfo.drawCount} | ${
+          teamBInfo.defeatCount
+        }) ${row.teamBLastFive ? "(" + row.teamBLastFive + ")" : ""}`
       );
+    },
+  },
+  {
+    title: "比分",
+    key: "score",
+    render(row) {
+      return h("span", {}, `${row.score}`);
+    },
+  },
+  {
+    title: "盈亏",
+    key: "result",
+    render(row) {
+      return h("span", {}, `${row.result}`);
     },
   },
 ];
 const route = useRoute();
-const date = route.query.date || moment().format("YYYY-MM-DD");
+const date = computed(() => route.query.date || moment().format("YYYY-MM-DD"));
 const data = ref([]);
 const tips = ref("");
 let sum = ref(0);
 let originData = [];
+const id = ref("");
 
 const handleFilter = (val) => {
   getData();
@@ -146,11 +170,45 @@ function uniqueObjectsByProperty(arr, property) {
 
 function getData() {
   sum.value = 0;
+
   data.value = originData
     .filter((item) => {
       const rateMin = Math.min(item.rate[0], item.rate[1], item.rate[2]);
+      const { winTopInfo, defeatTopInfo } = item;
+
+      const isWin =
+        Number(winTopInfo.winCount) >=
+        Number(winTopInfo.defeatCount) + Number(winTopInfo.drawCount);
+
+      const isDefeat =
+        Number(defeatTopInfo.defeatCount) >=
+        Number(defeatTopInfo.winCount) + Number(defeatTopInfo.drawCount);
+      let winTeamCount = "";
+
+      if (item.teamALastFive) {
+        const winTeamName = item.winTopInfo.teamName;
+        let winTeamKey = "";
+        for (let key in item) {
+          if (item[key] === winTeamName) {
+            winTeamKey = key;
+            break;
+          }
+        }
+
+        winTeamCount = item[`${winTeamKey}LastFive`].filter(
+          (item) => item === "胜"
+        ).length;
+      }
+
       if (isFilter.value) {
-        if (rateMin > 1.1) {
+        if (
+          rateMin > 1.25 &&
+          isWin &&
+          isDefeat &&
+          item.leagueName !== "球会友谊" &&
+          ((winTeamCount && winTeamCount >= 3) ||
+            (!winTeamCount && winTeamCount !== 0))
+        ) {
           sum.value += rateMin - 1;
           return true;
         }
@@ -162,10 +220,50 @@ function getData() {
     .sort((a, b) => {
       return new Date(a.startTime) - new Date(b.startTime);
     });
+
+  data.value.forEach((item) => {
+    const defeatTeamName = item.defeatTopInfo.teamName;
+    const winTeamName = item.winTopInfo.teamName;
+    const mainGoalCount = Number(item.mainGoalCount);
+    const guestGoalCount = Number(item.guestGoalCount);
+
+    let defeatKey = "";
+    let winKey = "";
+
+    for (let key in item) {
+      if (item[key] === defeatTeamName) {
+        defeatKey = key;
+      }
+
+      if (item[key] === winTeamName) {
+        winKey = key;
+      }
+    }
+
+    if (winKey === "teamA") {
+      item.result =
+        mainGoalCount > guestGoalCount
+          ? ((Number(item.rate[0]) - 1) * 1000).toFixed(0)
+          : -1000;
+    } else {
+      item.result =
+        mainGoalCount < guestGoalCount
+          ? ((Number(item.rate[2]) - 1) * 1000).toFixed(0)
+          : -1000;
+    }
+
+    const defeatLastFive = item[`${defeatKey}LastFive`] || [];
+    item.isMore4Defeat =
+      defeatLastFive.filter((item) => item === "负")?.length >= 4;
+    item.score = `${mainGoalCount} : ${guestGoalCount}`;
+  });
+
+  console.log(data.value);
 }
 
-getLeaguesTop4GameDetailByDate({ date }).then((res) => {
+getLeaguesTop4GameDetailByDate({ date: date.value }).then(async (res) => {
   const game = JSON.parse(res.data?.game || "[]");
+  id.value = res.data?._id;
   let _game = uniqueObjectsByProperty(game, "teamA");
   if (_game[0].rate) {
     _game = _game.filter((item) => item.rate[0] !== "-");
@@ -175,7 +273,18 @@ getLeaguesTop4GameDetailByDate({ date }).then((res) => {
   }
 });
 
-getData();
+const getLeast5GamesResult = async () => {
+  const res = await getLatelyFiveGameResult(originData);
+  updateGameInfo({
+    _id: id.value,
+    game: JSON.stringify(res.list),
+  });
+  console.log(res, "zlzl");
+  originData = res.list;
+  getData();
+};
+
+// getData();
 </script>
 
 <style scoped>

@@ -44,6 +44,10 @@ export const getLeaguesList = (params) => {
   return $http.get("/my-service/footballGame/leagues/list", { params });
 };
 
+export const getLatelyFiveGameResult = (params) => {
+  return $http.post("/my-service/footballGame/leagues/fiveGameResult", params);
+};
+
 export const addLeagues = (params) => {
   return $http.post("/my-service/footballGame/leagues/add", params);
 };
@@ -57,11 +61,15 @@ export const deleteLeagues = (params) => {
 };
 
 export const getLeaguesTop4GameList = (params) => {
-  return $http.get("/my-service/leaguesTop4/list", params);
+  return $http.get("/my-service/leaguesTop4/list", { params });
 };
 
 export const getLeaguesTop4GameDetailByDate = (params) => {
-  return $http.get("/my-service/leaguesTop4/detail", {params});
+  return $http.get("/my-service/leaguesTop4/detail", { params });
+};
+
+export const updateGameInfo = (params) => {
+  return $http.post("/my-service/leaguesTop4/update", params);
 };
 
 export const getDltList = (params) => {
