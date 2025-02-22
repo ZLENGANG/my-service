@@ -1,19 +1,39 @@
 <template>
   <div class="container">
     <h1>今日比赛</h1>
-    <div>
+    <div class="mb-10">
       每场比赛买1000元，总计投入
       <span>{{ 1000 * data.length }}</span>
       元，最多可赢
       <span>{{ (sum * 1000).toFixed(2) }}</span>
     </div>
 
-    <div>筛选</div>
-    <n-switch v-model:value="isFilter" @update:value="handleFilter" />
+    <div class="mb-10">总盈亏：{{ money }}</div>
 
-    <n-button :loading="loading" type="primary" @click="getLeast5GamesResult"
+    <div class="mb-10">
+      筛选 <n-switch v-model:value="isFilter" @update:value="handleFilter" />
+    </div>
+
+    <n-button
+      class="mb-10"
+      :loading="loading"
+      type="primary"
+      :disabled="isFilter"
+      @click="getLeast5GamesResult"
       >更新</n-button
     >
+
+    <div class="mb-10">
+      <n-button
+        style="margin-right: 20px"
+        type="primary"
+        @click="handleDate('prev')"
+      >
+        前一天</n-button
+      >
+
+      <n-button type="primary" @click="handleDate('next')"> 后一天</n-button>
+    </div>
 
     <n-data-table :columns="columns" :data="data" striped />
   </div>
@@ -40,7 +60,7 @@ import {
   updateGameInfo,
 } from "@/api/service";
 import { ref, h, render, computed } from "vue";
-import { NDataTable, NModal, NSwitch, NButton } from "naive-ui";
+import { NDataTable, NModal, NSwitch, NButton, NButtonGroup } from "naive-ui";
 import { getLatelyFiveGameResult } from "../../api/service";
 
 const isShowIFrameDialog = ref(false);
@@ -158,9 +178,21 @@ let sum = ref(0);
 let originData = [];
 const id = ref("");
 const loading = ref(false);
+const money = ref(0);
 
 const handleFilter = (val) => {
   getData();
+};
+
+const handleDate = (type) => {
+  let jumpDate = "";
+  if (type === "prev") {
+    jumpDate = moment(date.value).subtract(1, "days").format("YYYY-MM-DD");
+  } else {
+    jumpDate = moment(date.value).add(1, "days").format("YYYY-MM-DD");
+  }
+  window.location.href = `#/leagues-top4-game/detail?date=${jumpDate}`;
+  window.location.reload();
 };
 
 function uniqueObjectsByProperty(arr, property) {
@@ -173,9 +205,31 @@ function uniqueObjectsByProperty(arr, property) {
 
 function getData() {
   sum.value = 0;
+  money.value = 0;
 
   data.value = originData
     .filter((item) => {
+      const notBuyLeagueNames = [
+        "塞内超",
+        "球会友谊",
+        "圣马甲",
+        "科特超",
+        "毛里甲",
+        "智利甲",
+        "巴西乙",
+        "冰岛超",
+      ];
+      const buyLeagueNames = [
+        "英超",
+        "西甲",
+        "法甲",
+        "意甲",
+        "德甲",
+        // "葡超",
+        // "荷甲",
+      ];
+      const leagueName = item.leaguesName || item.leagueName;
+
       const rateMin = Math.min(item.rate[0], item.rate[1], item.rate[2]);
       const { winTopInfo, defeatTopInfo } = item;
 
@@ -187,30 +241,48 @@ function getData() {
         Number(defeatTopInfo.defeatCount) >=
         Number(defeatTopInfo.winCount) + Number(defeatTopInfo.drawCount);
       let winTeamCount = "";
+      let defeatTeamCount = "";
 
       if (item.teamALastFive) {
         const winTeamName = item.winTopInfo.teamName;
+        const defeatTeamName = item.defeatTopInfo.teamName;
+
         let winTeamKey = "";
+        let defeatKey = "";
+
         for (let key in item) {
           if (item[key] === winTeamName) {
             winTeamKey = key;
-            break;
+          }
+          if (item[key] === defeatTeamName) {
+            defeatKey = key;
           }
         }
 
         winTeamCount = item[`${winTeamKey}LastFive`].filter(
           (item) => item === "胜"
         ).length;
+        defeatTeamCount = item[`${defeatKey}LastFive`].filter(
+          (item) => item === "负"
+        ).length;
       }
 
       if (isFilter.value) {
+        if (notBuyLeagueNames.includes(leagueName)) {
+          return false;
+        }
+        if (rateMin > 1.2 && buyLeagueNames.includes(leagueName)) {
+          sum.value += rateMin - 1;
+          return true;
+        }
         if (
-          rateMin > 1.25 &&
+          rateMin > 1.5 &&
           isWin &&
           isDefeat &&
-          item.leagueName !== "球会友谊" &&
           ((winTeamCount && winTeamCount >= 3) ||
-            (!winTeamCount && winTeamCount !== 0))
+            (!winTeamCount && winTeamCount !== 0) ||
+            (defeatTeamCount && defeatTeamCount >= 4) ||
+            (!defeatTeamCount && defeatTeamCount !== 0))
         ) {
           sum.value += rateMin - 1;
           return true;
@@ -254,7 +326,7 @@ function getData() {
           ? ((Number(item.rate[2]) - 1) * 1000).toFixed(0)
           : -1000;
     }
-
+    money.value += Number(item.result);
     const defeatLastFive = item[`${defeatKey}LastFive`] || [];
     item.isMore4Defeat =
       defeatLastFive.filter((item) => item === "负")?.length >= 4;
@@ -312,5 +384,9 @@ iframe {
 td a {
   cursor: pointer;
   text-decoration: underline;
+}
+
+.mb-10 {
+  margin-bottom: 10px;
 }
 </style>
