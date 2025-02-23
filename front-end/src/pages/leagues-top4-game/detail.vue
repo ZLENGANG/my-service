@@ -271,6 +271,9 @@ function getData() {
         if (notBuyLeagueNames.includes(leagueName)) {
           return false;
         }
+        if (item.leagueName === "球会友谊") {
+          return false;
+        }
         if (rateMin > 1.2 && buyLeagueNames.includes(leagueName)) {
           sum.value += rateMin - 1;
           return true;
