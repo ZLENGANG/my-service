@@ -4,11 +4,20 @@ import { getLatelyFiveGameResult } from "./task.js";
 const leaguesService = {
   // 获取联赛列表
   async getLeaguesList(req, res, next) {
+    const { page, size, search } = req.query;
     try {
-      const list = await LeaguesModel.find({});
+      const query = search ? { name: new RegExp(search, "i") } : {};
+      const list = await LeaguesModel.find(query)
+        .skip((page - 1) * size)
+        .limit(size);
+      const total = await LeaguesModel.countDocuments();
+
       res.json({
         code: 200,
         list,
+        page,
+        size,
+        total,
       });
     } catch (error) {
       res.json({ code: 500, message: error.message });
