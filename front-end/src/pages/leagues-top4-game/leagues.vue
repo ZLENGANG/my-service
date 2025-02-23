@@ -1,7 +1,18 @@
 <template>
   <div class="container">
     <n-button type="primary" @click="isShowAddDialog = true">添加</n-button>
-    <n-data-table :columns="columns" :data="data" :pagination="pagination" />
+
+    <div style="margin: 10px 0">
+      <n-input :style="{ width: '50%' }" v-model:value="keyword" />
+      <n-button type="primary" @click="getData"> 搜索 </n-button>
+    </div>
+
+    <n-data-table
+      remote
+      :columns="columns"
+      :data="data"
+      :pagination="pagination"
+    />
 
     <n-modal
       v-model:show="isShowAddDialog"
@@ -24,10 +35,7 @@
           <n-input v-model:value="formValue.code" placeholder="输入联赛ID" />
         </n-form-item>
         <n-form-item label="联赛名称" path="name">
-          <n-input
-            v-model:value="formValue.name"
-            placeholder="输入联赛名称"
-          />
+          <n-input v-model:value="formValue.name" placeholder="输入联赛名称" />
         </n-form-item>
         <n-form-item label="是否可用" path="disabled">
           <n-switch v-model:value="formValue.isActive">
@@ -52,7 +60,12 @@
 </template>
 
 <script setup>
-import { getLeaguesList, addLeagues, updateLeagues, deleteLeagues } from "@/api/service";
+import {
+  getLeaguesList,
+  addLeagues,
+  updateLeagues,
+  deleteLeagues,
+} from "@/api/service";
 import {
   NDataTable,
   NSwitch,
@@ -70,6 +83,7 @@ const message = useMessage();
 const dialog = useDialog();
 const isShowIFrameDialog = ref(false);
 const iframeSrc = ref("");
+const keyword = ref("");
 
 const columns = ref([
   {
@@ -109,7 +123,10 @@ const columns = ref([
           href: `https://data.qtx.com/jifenbang/${row.code}.html`,
           onClick: (e) => {
             e.preventDefault();
-            window.open(`https://data.qtx.com/jifenbang/${row.code}.html`, "_blank");
+            window.open(
+              `https://data.qtx.com/jifenbang/${row.code}.html`,
+              "_blank"
+            );
           },
         },
         `https://data.qtx.com/jifenbang/${row.code}.html`
@@ -162,7 +179,23 @@ const pagination = reactive({
   placement: "bottom",
   showQuickJumper: true,
   showSizePicker: true,
+  pageSize: 10,
+  page: 1,
+  itemCount: 0,
   pageSizes: [10, 20, 30, 40],
+  prefix: () => {
+    //分页前缀
+    return "共 " + pagination.itemCount + " 项";
+  },
+  onChange(page) {
+    pagination.page = page;
+    getData();
+  },
+  onPageSizeChange: (pageSize) => {
+    pagination.pageSize = pageSize;
+    pagination.page = 1;
+    getData();
+  },
 });
 
 const data = ref([]);
@@ -186,8 +219,13 @@ const rules = ref({
 });
 
 const getData = () => {
-  getLeaguesList().then((res) => {
+  getLeaguesList({
+    search: keyword.value.trim(),
+    page: pagination.page,
+    size: pagination.pageSize,
+  }).then((res) => {
     data.value = res.list;
+    pagination.itemCount = res.total;
   });
 };
 
