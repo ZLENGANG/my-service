@@ -1,12 +1,6 @@
 <template>
   <div class="container">
     <h1>今日比赛</h1>
-    <div class="mb-10">
-      每场比赛买1000元，总计投入
-      <span>{{ 1000 * data.length }}</span>
-      元，最多可赢
-      <span>{{ (sum * 1000).toFixed(2) }}</span>
-    </div>
 
     <div class="mb-10">总盈亏：{{ money }}</div>
 
@@ -62,6 +56,7 @@ import {
 import { ref, h, render, computed } from "vue";
 import { NDataTable, NModal, NSwitch, NButton, NButtonGroup } from "naive-ui";
 import { getLatelyFiveGameResult } from "../../api/service";
+import { handleFilterGameItem } from "./summary/utils";
 
 const isShowIFrameDialog = ref(false);
 const iframeSrc = ref("");
@@ -174,7 +169,6 @@ const route = useRoute();
 const date = computed(() => route.query.date || moment().format("YYYY-MM-DD"));
 const data = ref([]);
 const tips = ref("");
-let sum = ref(0);
 let originData = [];
 const id = ref("");
 const loading = ref(false);
@@ -204,100 +198,15 @@ function uniqueObjectsByProperty(arr, property) {
 }
 
 function getData() {
-  sum.value = 0;
   money.value = 0;
 
-  data.value = originData
-    .filter((item) => {
-      const notBuyLeagueNames = [
-        "塞内超",
-        "球会友谊",
-        "圣马甲",
-        "科特超",
-        "毛里甲",
-        "智利甲",
-        "巴西乙",
-        "冰岛超",
-      ];
-      const buyLeagueNames = [
-        "英超",
-        "西甲",
-        "法甲",
-        "意甲",
-        "德甲",
-        // "葡超",
-        // "荷甲",
-      ];
-      const leagueName = item.leaguesName || item.leagueName;
+  data.value = originData.sort((a, b) => {
+    return new Date(a.startTime) - new Date(b.startTime);
+  });
 
-      const rateMin = Math.min(item.rate[0], item.rate[1], item.rate[2]);
-      const { winTopInfo, defeatTopInfo } = item;
-
-      const isWin =
-        Number(winTopInfo.winCount) >=
-        Number(winTopInfo.defeatCount) + Number(winTopInfo.drawCount);
-
-      const isDefeat =
-        Number(defeatTopInfo.defeatCount) >=
-        Number(defeatTopInfo.winCount) + Number(defeatTopInfo.drawCount);
-      let winTeamCount = "";
-      let defeatTeamCount = "";
-
-      if (item.teamALastFive) {
-        const winTeamName = item.winTopInfo.teamName;
-        const defeatTeamName = item.defeatTopInfo.teamName;
-
-        let winTeamKey = "";
-        let defeatKey = "";
-
-        for (let key in item) {
-          if (item[key] === winTeamName) {
-            winTeamKey = key;
-          }
-          if (item[key] === defeatTeamName) {
-            defeatKey = key;
-          }
-        }
-
-        winTeamCount = item[`${winTeamKey}LastFive`].filter(
-          (item) => item === "胜"
-        ).length;
-        defeatTeamCount = item[`${defeatKey}LastFive`].filter(
-          (item) => item === "负"
-        ).length;
-      }
-
-      if (isFilter.value) {
-        if (notBuyLeagueNames.includes(leagueName)) {
-          return false;
-        }
-        if (item.leagueName === "球会友谊") {
-          return false;
-        }
-        if (rateMin > 1.2 && buyLeagueNames.includes(leagueName)) {
-          sum.value += rateMin - 1;
-          return true;
-        }
-        if (
-          rateMin > 1.5 &&
-          isWin &&
-          isDefeat &&
-          ((winTeamCount && winTeamCount >= 3) ||
-            (!winTeamCount && winTeamCount !== 0) ||
-            (defeatTeamCount && defeatTeamCount >= 4) ||
-            (!defeatTeamCount && defeatTeamCount !== 0))
-        ) {
-          sum.value += rateMin - 1;
-          return true;
-        }
-      } else {
-        sum.value += rateMin - 1;
-        return true;
-      }
-    })
-    .sort((a, b) => {
-      return new Date(a.startTime) - new Date(b.startTime);
-    });
+  if (isFilter.value) {
+    data.value = handleFilterGameItem(originData);
+  }
 
   data.value.forEach((item) => {
     const defeatTeamName = item.defeatTopInfo.teamName;

@@ -10,6 +10,7 @@ import Dlt from "../pages/dlt/index.vue";
 import LeaguesTop4Game from "../pages/leagues-top4-game/index.vue";
 import LeaguesTop4GameDetail from "../pages/leagues-top4-game/detail.vue";
 import LeaguesManage from "../pages/leagues-top4-game/leagues.vue";
+import LeaguesSummary from "../pages/leagues-top4-game/summary/index.vue";
 
 const routes = [
   { path: "/", component: Home, meta: { title: "首页" } },
@@ -55,6 +56,11 @@ const routes = [
     path: "/leagues-top4-game/leagues",
     component: LeaguesManage,
     meta: { title: "联赛维护" },
+  },
+  {
+    path: "/leagues-top4-game/summary",
+    component: LeaguesSummary,
+    meta: { title: "联赛排名前四和后四的比赛-统计" },
   },
 ];
 

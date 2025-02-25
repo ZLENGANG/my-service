@@ -1,6 +1,15 @@
 <template>
   <div class="container">
-    <n-button type="primary" @click="jump">联赛维护</n-button>
+    <div style="margin-bottom: 10px;">
+      <n-button type="primary" @click="jump" style="margin-right: 10px"
+        >联赛维护</n-button
+      >
+      <n-button
+        type="primary"
+        @click="router.push('/leagues-top4-game/summary')"
+        >统计</n-button
+      >
+    </div>
     <n-data-table
       remote
       :columns="columns"
