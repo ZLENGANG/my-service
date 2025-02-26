@@ -62,13 +62,23 @@ myServiceRouter.post(`/footballGame/leagues/update`, (req, res, next) => {
   leaguesService.updateLeagues(req, res, next);
 });
 
+myServiceRouter.post(
+  `/footballGame/leagues/updateAllLeagues`,
+  (req, res, next) => {
+    leaguesService.updateAllLeagues(req, res, next);
+  }
+);
+
 myServiceRouter.post(`/footballGame/leagues/delete`, (req, res, next) => {
   leaguesService.deleteLeagues(req, res, next);
 });
 
-myServiceRouter.post(`/footballGame/leagues/fiveGameResult`, (req, res, next) => {
-  leaguesService.getLatelyFiveGameResult(req, res, next);
-});
+myServiceRouter.post(
+  `/footballGame/leagues/fiveGameResult`,
+  (req, res, next) => {
+    leaguesService.getLatelyFiveGameResult(req, res, next);
+  }
+);
 
 myServiceRouter.get(`/leaguesTop4/list`, (req, res, next) => {
   leaguesTop4GameService.getLeaguesTop4GameList(req, res, next);

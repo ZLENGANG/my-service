@@ -6,6 +6,8 @@ const LeaguesSchema = new mongoose.Schema(
     code: String,
     name: String,
     disabled: Boolean,
+    totalGames: Number,
+    avgGames: Number,
   },
   { timestamps: true }
 );

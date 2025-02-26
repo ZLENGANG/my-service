@@ -1,5 +1,6 @@
 import LeaguesModel from "../../../schema/Leagues.js";
 import { getLatelyFiveGameResult } from "./task.js";
+import { getAllLeaguesTotalGames } from "./utils.js";
 
 const leaguesService = {
   // 获取联赛列表
@@ -71,6 +72,27 @@ const leaguesService = {
     const data = req.body;
     try {
       await LeaguesModel.deleteOne({ code: data.code });
+      res.json({
+        code: 200,
+        message: "ok",
+      });
+    } catch (error) {
+      res.json({ code: 500, message: error.message });
+    }
+  },
+
+  async updateAllLeagues(req, res, next) {
+    try {
+      const list = await LeaguesModel.find();
+      const newList = await getAllLeaguesTotalGames(list);
+
+      for (const league of newList) {
+        await LeaguesModel.findOneAndUpdate({ code: league.code }, league, {
+          new: true,
+          upsert: true,
+        });
+      }
+
       res.json({
         code: 200,
         message: "ok",
