@@ -56,6 +56,10 @@ export const updateLeagues = (params) => {
   return $http.post("/my-service/footballGame/leagues/update", params);
 };
 
+export const updateAllLeagues = (params) => {
+  return $http.post("/my-service/footballGame/leagues/updateAllLeagues", params);
+};
+
 export const deleteLeagues = (params) => {
   return $http.post("/my-service/footballGame/leagues/delete", params);
 };

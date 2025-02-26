@@ -1,10 +1,21 @@
 <template>
   <div class="container">
     <n-button type="primary" @click="isShowAddDialog = true">添加</n-button>
+    <n-button
+      :loading="loading"
+      type="primary"
+      style="margin-left: 10px"
+      @click="handleUpdateAllLeagues"
+      >更新联赛</n-button
+    >
 
     <div style="margin: 10px 0">
-      <n-input :style="{ width: '50%' }" v-model:value="keyword" />
-      <n-button type="primary" @click="getData"> 搜索 </n-button>
+      <n-input
+        :style="{ width: '50%' }"
+        v-model:value="keyword"
+        @keydown.enter="getData('search')"
+      />
+      <n-button type="primary" @click="getData('search')"> 搜索 </n-button>
     </div>
 
     <n-data-table
@@ -65,6 +76,7 @@ import {
   addLeagues,
   updateLeagues,
   deleteLeagues,
+  updateAllLeagues,
 } from "@/api/service";
 import {
   NDataTable,
@@ -84,6 +96,7 @@ const dialog = useDialog();
 const isShowIFrameDialog = ref(false);
 const iframeSrc = ref("");
 const keyword = ref("");
+const loading = ref(false);
 
 const columns = ref([
   {
@@ -218,7 +231,10 @@ const rules = ref({
   },
 });
 
-const getData = () => {
+const getData = (type) => {
+  if (type === "search") {
+    pagination.page = 1;
+  }
   getLeaguesList({
     search: keyword.value.trim(),
     page: pagination.page,
@@ -240,6 +256,13 @@ const handleChangeStatus = (row) => {
     } else {
       message.error("修改失败！");
     }
+  });
+};
+
+const handleUpdateAllLeagues = () => {
+  loading.value = true;
+  updateAllLeagues().finally(() => {
+    loading.value = false;
   });
 };
 
