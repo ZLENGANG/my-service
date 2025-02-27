@@ -34,7 +34,7 @@ export function getLeaguesTotalGames(info) {
         }
 
         const leaguesTotalGames = teamsTotal ? 2 * teamsTotal - 2 : 0;
-        const avgGames = sum / teamsTotal;
+        const avgGames = sum / teamsTotal || 0;
         resolve({
           avgGames,
           totalGames: leaguesTotalGames,

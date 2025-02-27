@@ -50,12 +50,14 @@ const leaguesService = {
   async updateLeagues(req, res, next) {
     const data = req.body;
     try {
-      await LeaguesModel.findOneAndUpdate(
+      await LeaguesModel.updateOne(
         { code: data.code },
         {
           disabled: data.disabled,
           leaguesName: data.leaguesName,
-          code: data.code,
+          code: data.newCode,
+          totalGames: Number(data.totalGames),
+          avgGames: Number(data.avgGames),
         }
       );
       res.json({
@@ -83,19 +85,25 @@ const leaguesService = {
 
   async updateAllLeagues(req, res, next) {
     try {
+      // 获取新数据
       const list = await LeaguesModel.find();
       const newList = await getAllLeaguesTotalGames(list);
 
-      for (const league of newList) {
-        await LeaguesModel.findOneAndUpdate({ code: league.code }, league, {
-          new: true,
-          upsert: true,
-        });
+      for (const item of newList) {
+        const { totalGames, avgGames } = item; // 使用对象解构排除 _id 字段
+
+        await LeaguesModel.updateOne(
+          { code: item._doc.code },
+          {
+            totalGames,
+            avgGames,
+          }
+        );
       }
 
       res.json({
         code: 200,
-        message: "ok",
+        message: "整表更新成功",
       });
     } catch (error) {
       res.json({ code: 500, message: error.message });
