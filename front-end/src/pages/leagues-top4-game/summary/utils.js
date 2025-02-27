@@ -48,8 +48,16 @@ function getRecentFiveResult(gameitem) {
 export function handleFilterGameItem(games) {
   return games.filter((gameitem) => {
     const rateOne = gameitem.rate[0];
+    const winGameCount = Number(gameitem.winTopInfo.gameCount);
+    const defeatGameCount = Number(gameitem.defeatTopInfo.gameCount);
+
     // 排除无盘的比赛
     if (rateOne === "-") {
+      return false;
+    }
+
+    // 排除场次少于5的比赛
+    if (defeatGameCount < 5 || winGameCount < 5) {
       return false;
     }
 

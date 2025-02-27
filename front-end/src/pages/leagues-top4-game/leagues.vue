@@ -23,6 +23,7 @@
       :columns="columns"
       :data="data"
       :pagination="pagination"
+      :rowClassName="rowClassName"
     />
 
     <n-modal
@@ -58,6 +59,40 @@
     </n-modal>
 
     <n-modal
+      v-model:show="isShowEditDialog"
+      :mask-closable="false"
+      :show-icon="false"
+      preset="dialog"
+      title="编辑数据"
+      positive-text="确认"
+      negative-text="取消"
+      :on-positive-click="saveEdit"
+    >
+      <n-form
+        ref="formRef"
+        :label-width="80"
+        :model="curRow"
+        require-mark-placement="left"
+      >
+        <n-form-item label="联赛ID">
+          <n-input v-model:value="curRow.code" placeholder="输入联赛ID" />
+        </n-form-item>
+        <n-form-item label="总比赛场次">
+          <n-input-number
+            v-model:value.number="curRow.totalGames"
+            placeholder="输入联赛总比赛场次"
+          />
+        </n-form-item>
+        <n-form-item label="当前轮次">
+          <n-input-number
+            v-model:value="curRow.avgGames"
+            placeholder="输入当前轮次"
+          />
+        </n-form-item>
+      </n-form>
+    </n-modal>
+
+    <n-modal
       v-model:show="isShowIFrameDialog"
       :mask-closable="false"
       :show-icon="false"
@@ -88,6 +123,7 @@ import {
   NInput,
   useMessage,
   useDialog,
+  NInputNumber
 } from "naive-ui";
 import { reactive, ref, h } from "vue";
 
@@ -97,6 +133,9 @@ const isShowIFrameDialog = ref(false);
 const iframeSrc = ref("");
 const keyword = ref("");
 const loading = ref(false);
+const isShowEditDialog = ref(false);
+const curRow = ref({});
+let oldRow = {};
 
 const columns = ref([
   {
@@ -126,6 +165,16 @@ const columns = ref([
     },
   },
   { title: "联赛ID", key: "code" },
+  {
+    title: "当前轮次",
+    key: "avgGames",
+    render(row) {
+      return h("span", null, {
+        default: () => `${Math.ceil(row.avgGames)}`,
+      });
+    },
+  },
+  { title: "总比赛场数", key: "totalGames" },
   {
     title: "链接",
     key: "url",
@@ -169,23 +218,61 @@ const columns = ref([
   {
     title: "操作",
     key: "opt",
-    width: 100,
+    width: 200,
     align: "center",
     render: (row, record, index) => {
-      return h(
-        NButton,
-        {
-          type: "error",
-          size: "small",
-          onClick() {
-            handleDelete(row);
+      return h("div", null, [
+        h(
+          NButton,
+          {
+            type: "primary",
+            size: "small",
+            style: "margin-right: 10px",
+            onClick() {
+              oldRow = row;
+              curRow.value = JSON.parse(JSON.stringify(row));
+              isShowEditDialog.value = true;
+            },
           },
-        },
-        { default: () => "删除" }
-      );
+          { default: () => "编辑" }
+        ),
+        h(
+          NButton,
+          {
+            type: "error",
+            size: "small",
+            onClick() {
+              handleDelete(row);
+            },
+          },
+          { default: () => "删除" }
+        ),
+      ]);
     },
   },
 ]);
+const rowClassName = (row) => {
+  const isRed = Math.ceil(row.avgGames) >= row.totalGames;
+  if (isRed) {
+    return "red";
+  }
+  return "";
+};
+
+const saveEdit = () => {
+  updateLeagues({
+    ...curRow.value,
+    code: oldRow.code,
+    newCode: curRow.value.code,
+  }).then((res) => {
+    if (res.code === 200) {
+      getData()
+      message.success("修改成功！");
+    } else {
+      message.error("修改失败！");
+    }
+  });
+};
 
 const pagination = reactive({
   trigger: "click",
@@ -332,5 +419,9 @@ iframe {
   width: 100%;
   height: 100vh;
   border: none;
+}
+
+:deep(.n-data-table .red td) {
+  background-color: yellowgreen !important;
 }
 </style>
