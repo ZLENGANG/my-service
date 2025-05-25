@@ -7,6 +7,7 @@ import moment from "moment";
 import LeaguesGameModel from "../../../schema/LeaguesGame.js";
 import ServiceModel from "../../../schema/Service.js";
 import schedule from "node-schedule";
+import { getAllLeaguesTotalClub } from "./utils.js";
 
 let job = null;
 
@@ -150,6 +151,7 @@ const getLatelyGame = (teamInfo) => {
         teamA: filterArr[2],
         teamB: filterArr[3],
         winTopInfo: teamInfo,
+        id: Math.random() * 10000000,
       });
     });
   });
@@ -230,6 +232,10 @@ export const getLatelyFiveGameResult = (gameInfo, type) => {
             "body > div.bf-main > div > div.bf-top-data > table > tbody > tr:nth-child(2) > td:nth-child(3) > div > i:nth-child(3)"
           ).text();
 
+          const halfScore = $(
+            "body > div.bf-main > div > div.bf-top-data > table > tbody > tr:nth-child(2) > td:nth-child(3) > div > div > span"
+          ).text();
+
           for (let i = 0; i < mainTrs.length; i++) {
             const gameName = $(mainTrs[i].children[1]).text();
             const gameResult = $(mainTrs[i].children[25]).text();
@@ -266,6 +272,7 @@ export const getLatelyFiveGameResult = (gameInfo, type) => {
                   ...gameInfo,
                   mainGoalCount,
                   guestGoalCount,
+                  halfScore,
                 }
               : {}),
             teamALastFive: filterMainArr,
@@ -340,39 +347,48 @@ const main = async () => {
     });
 
     Promise.all(ratePArr).then((finallyArr) => {
-      const info = {
-        title: `今日联赛前4名比赛`,
-        desp: `${SERVER_ADDRESS}/#/leagues-top4-game/detail?date=${moment().format(
-          "YYYY-MM-DD"
-        )}`,
-      };
-      axios.post(SEND_URL, info);
-      LeaguesGameModel.create({
-        date: moment().format("YYYY-MM-DD"),
-        game: JSON.stringify(finallyArr),
+      getAllLeaguesTotalClub(finallyArr).then((resArr) => {
+        const info = {
+          title: `今日联赛前4名比赛`,
+          desp: `${SERVER_ADDRESS}/#/leagues-top4-game/detail?date=${moment().format(
+            "YYYY-MM-DD"
+          )}`,
+        };
+        axios.post(SEND_URL, info);
+        LeaguesGameModel.create({
+          date: moment().format("YYYY-MM-DD"),
+          game: JSON.stringify(resArr),
+        });
       });
     });
   });
 };
 
 const leaguesTopGameTask = {
-  async scheduleTask() {
+  async scheduleTask(execTime) {
     let rule = new schedule.RecurrenceRule();
-    rule.hour = 17;
-    rule.minute = 0;
-    rule.second = 0;
+    if (execTime) {
+      const arr = execTime.split(":");
+      rule.hour = arr[0];
+      rule.minute = arr[1];
+      rule.second = arr[2];
+    } else {
+      rule.hour = 17;
+      rule.minute = 0;
+      rule.second = 0;
+    }
 
     job = schedule.scheduleJob(rule, async () => {
       main();
     });
   },
-  start({ id }) {
+  start({ id, execTime }) {
     return new Promise(async (resolve, reject) => {
       // 开启定时任务
-      leaguesTopGameTask.scheduleTask();
+      leaguesTopGameTask.scheduleTask(execTime);
 
       // 更新服务状态
-      await ServiceModel.findOneAndUpdate({ id }, { status: true });
+      await ServiceModel.findOneAndUpdate({ id }, { status: true, execTime });
 
       axios.post(SEND_URL, {
         title: `恭喜-今日联赛前四比赛监听服务已启动`,

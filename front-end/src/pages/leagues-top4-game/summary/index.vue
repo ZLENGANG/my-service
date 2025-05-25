@@ -24,12 +24,21 @@
       />
     </n-card>
 
+    <n-card title="联赛">
+      <n-data-table
+        :columns="leaguesColumns"
+        :data="leaguesData"
+        striped
+        max-height="500"
+      />
+    </n-card>
+
     <n-modal
       v-model:show="isShowWeekDataDialog"
       :show-icon="false"
       preset="dialog"
       :title="weekDetailTitle"
-      style="width:800px"
+      style="width: 800px"
     >
       <n-data-table
         :columns="dateColumns"
@@ -48,13 +57,27 @@
     >
       <iframe :src="iframeSrc"></iframe>
     </n-modal>
+
+    <n-modal
+      v-model:show="isShowLeaguesDetailDialog"
+      :show-icon="false"
+      preset="dialog"
+      style="width: 1200px"
+    >
+      <n-data-table
+        :columns="leaguesDetailColumns"
+        :data="curLeaguesDetail"
+        striped
+        max-height="500"
+      />
+    </n-modal>
   </div>
 </template>
 
 <script setup>
 import { ref } from "vue";
 import { NDataTable, NModal, NSwitch, NButton, NCard } from "naive-ui";
-import { getLeaguesTop4GameList } from "@/api/service";
+import { getLeaguesTop4GameList, getLeaguesList } from "@/api/service";
 import {
   filterData,
   categoryByWeek,
@@ -63,11 +86,19 @@ import {
   handleMonthData,
   calSum,
   toPercent,
+  leaguesGames,
 } from "./utils";
-import { getDateColumns, getWeekColumns, monethColumns } from "./config";
+import {
+  getDateColumns,
+  getWeekColumns,
+  monethColumns,
+  gateLeaguesColumns,
+  leaguesDetailColumns,
+} from "./config";
 
 const weekData = ref([]);
 const monthData = ref([]);
+const leaguesData = ref([]);
 const monthSum = ref(0);
 const monthGameCount = ref(0);
 const monthWinGameCount = ref(0);
@@ -77,6 +108,9 @@ const weekDetailTitle = ref("");
 const isShowDateDetailDialog = ref(false);
 const iframeSrc = ref("");
 const dateDetailTitle = ref("");
+const isShowLeaguesDetailDialog = ref(false);
+const curLeaguesDetail = ref([]);
+const leaguesList = ref([]);
 
 const dateColumns = getDateColumns((row) => {
   console.log(row);
@@ -91,17 +125,32 @@ const weekColumns = getWeekColumns((row) => {
   isShowWeekDataDialog.value = true;
 });
 
-getLeaguesTop4GameList({
+const leaguesColumns = gateLeaguesColumns((row) => {
+  console.log(row);
+  curLeaguesDetail.value = row.games;
+  isShowLeaguesDetailDialog.value = true;
+});
+
+getLeaguesList({
+  search: "",
   page: 1,
   size: 10000,
-}).then((res) => {
-  const data = filterData(res.list);
-  weekData.value = handleWeekData(categoryByWeek(data));
-  monthData.value = handleMonthData(categoryByMonth(data));
-  monthSum.value = calSum(monthData.value, "monthSum");
-  monthGameCount.value = calSum(monthData.value, "monthGameCount");
-  monthWinGameCount.value = calSum(monthData.value, "monthWinGameCount");
-  console.log(weekData.value, monthData.value);
+}).then((res1) => {
+  getLeaguesTop4GameList({
+    page: 1,
+    size: 10000,
+  }).then((res) => {
+    const list = JSON.parse(JSON.stringify(res.list));
+    const data = filterData(res.list, res1.list);
+    weekData.value = handleWeekData(categoryByWeek(data));
+    monthData.value = handleMonthData(categoryByMonth(data));
+    monthSum.value = calSum(monthData.value, "monthSum");
+    monthGameCount.value = calSum(monthData.value, "monthGameCount");
+    monthWinGameCount.value = calSum(monthData.value, "monthWinGameCount");
+    // console.log(weekData.value, monthData.value);
+
+    leaguesData.value = leaguesGames(list);
+  });
 });
 </script>
 
@@ -116,6 +165,7 @@ getLeaguesTop4GameList({
   display: flex;
   justify-content: space-around;
   margin-top: 20px;
+  flex-wrap: wrap;
 }
 iframe {
   width: 100%;

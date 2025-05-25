@@ -62,6 +62,11 @@ const routes = [
     component: LeaguesSummary,
     meta: { title: "联赛排名前四和后四的比赛-统计" },
   },
+  {
+    path: "/edit-div",
+    component: () => import("../pages/edit-div/index.vue"),
+    meta: { title: "可编辑div" },
+  },
 ];
 
 const router = createRouter({

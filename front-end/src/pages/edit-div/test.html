@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        background: white;
+      }
+      .container {
+        box-sizing: border-box;
+        position: fixed;
+        bottom: 0;
+        background: white;
+        width: 100%;
+      }
+
+      .input-container {
+        padding: 10px;
+        border-top: 1px solid #ddd;
+        border-bottom: 1px solid #ddd;
+        outline: none;
+      }
+
+      .content-editor {
+        background: rgb(243, 241, 254);
+        color: rgb(103, 84, 198);
+        display: inline-block;
+        min-width: 2em;
+        max-width: calc(100% - 12px);
+        min-height: 1em;
+        border-radius: 4px;
+        padding: 4px 6px;
+        outline: none;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-all;
+        position: relative;
+        margin: 5px 0;
+      }
+
+      .content-editor[placeholder]:empty::before {
+        content: attr(placeholder);
+        color: rgb(103, 84, 198);
+        opacity: 0.5;
+        pointer-events: none;
+        width: max-content;
+      }
+
+      /* 新增测量用样式 */
+      .measure-span {
+        position: absolute;
+        visibility: hidden;
+        white-space: pre-wrap;
+        word-break: break-all;
+        padding: 4px 6px;
+      }
+
+      .options-container {
+        overflow: auto;
+        display: flex;
+        margin-bottom: 10px;
+      }
+
+      .options-container::-webkit-scrollbar {
+        display: none;
+      }
+
+      .option-btn {
+        display: inline-block;
+        height: 32px;
+        padding: 0 10px;
+        line-height: 30px;
+        font-size: 12px;
+        border: 1px solid #e1f3d8;
+        border-radius: 4px;
+        box-sizing: border-box;
+        white-space: nowrap;
+        margin-right: 10px;
+      }
+
+      .send-box {
+        margin: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .send-btn {
+        background-color: #f0f9eb;
+        border-color: #e1f3d8;
+        color: #67c23a;
+      }
+
+      #result {
+        position: fixed;
+        transform: translateX(-50%);
+        left: 50%;
+        top: 150px;
+        text-align: center;
+        width: 90%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="result"></div>
+      <div class="options-container" id="optionsContainer"></div>
+      <div class="input-container" id="editorContainer" contenteditable></div>
+      <div class="send-box">
+        <div class="cancel-btn" id="cancel-btn">取消</div>
+        <div class="option-btn send-btn" id="send-btn">发送</div>
+      </div>
+    </div>
+
+    <script>
+      // 模拟后台数据
+      const data =
+        "你是一名$${老师-请输入角色-角色}$$，请帮我撰写一封年度感恩回顾信，真诚表达对$${it部门-请输入对象-对象}$$在过去一年里支持与帮助的感激之情，并希望内容能展现出的$${-请输入内容风格-内容风格}$$特点";
+
+      const dataMap = {
+        角色: [
+          "团队负责人",
+          "前端工程师",
+          "H5",
+          "后端工程师",
+          "产品经理",
+          "设计师",
+          "测试工程师",
+          "运营",
+          "项目经理",
+          "CTO",
+        ],
+        对象: [
+          "销售部",
+          "财务部",
+          "人事部",
+          "行政部",
+          "市场部",
+          "运营部",
+          "IT部",
+        ],
+        内容风格: ["优雅", "时尚", "接地气", "隆重", "轻松"],
+      };
+
+      // 解析模板字符串
+      function parseTemplate(template) {
+        const regex = /\$\$\{(.*?)\}\$\$/g;
+        let lastIndex = 0;
+        const elements = [];
+
+        template.replace(regex, (match, content, index) => {
+          // 添加前面的静态文本
+          if (index > lastIndex) {
+            elements.push({
+              type: "text",
+              content: template.slice(lastIndex, index),
+            });
+          }
+
+          // 解析动态内容
+          const [displayText, placeholder, id] = content.split(/-/);
+          elements.push({
+            type: "input",
+            displayText: displayText.trim(),
+            placeholder: placeholder.trim(),
+            id: id.trim(),
+          });
+
+          lastIndex = index + match.length;
+          return match;
+        });
+
+        // 添加最后的静态文本
+        if (lastIndex < template.length) {
+          elements.push({
+            type: "text",
+            content: template.slice(lastIndex),
+          });
+        }
+        return elements;
+      }
+
+      // 创建输入框元素（修改后）
+      function createInputElement(displayText, placeholder, id) {
+        const editor = document.createElement("div");
+        editor.className = "content-editor";
+        editor.contentEditable = true;
+        editor.setAttribute("placeholder", placeholder);
+        editor.setAttribute("data-id", id);
+        editor.dataset.isPlaceholder = "false"; // 新增状态标记
+        const container = document.getElementById("editorContainer");
+
+        // 初始化内容
+        if (displayText) {
+          editor.textContent = displayText;
+        } else {
+          editor.dataset.isPlaceholder = "true";
+        }
+
+        // 输入事件处理
+        editor.addEventListener("input", (e) => {
+          if (editor.textContent === "") {
+            editor.dataset.isPlaceholder = "true";
+          } else {
+            editor.dataset.isPlaceholder = "false";
+          }
+          adjustEditorSize(editor);
+        });
+
+        // 键盘事件处理（关键修改）
+        editor.addEventListener("keydown", (e) => {
+          if (e.key === "Backspace") {
+            // 当处于占位符状态时
+            if (editor.dataset.isPlaceholder === "true") {
+              e.preventDefault();
+              container.removeChild(editor);
+              resetCursorPostion();
+            }
+            // 当内容为空但尚未标记为占位符状态时
+            else if (editor.textContent === "") {
+              e.preventDefault();
+              editor.dataset.isPlaceholder = "true";
+              adjustEditorSize(editor);
+            }
+          }
+        });
+
+        // 聚焦时处理
+        editor.addEventListener("focus", () => {
+          if (editor.dataset.isPlaceholder === "true") {
+            placeCaretAtStart(editor);
+          }
+        });
+
+        editor.addEventListener("click", () => {
+          container.setAttribute("contenteditable", "false");
+          setTimeout(() => {
+            editor.focus();
+          }, 100);
+          handleInputClick(editor);
+        });
+
+        editor.addEventListener("blur", () => {
+          container.setAttribute("contenteditable", "true");
+        });
+
+        return editor;
+      }
+
+      // 设置光标起始位置
+      function placeCaretAtStart(element) {
+        const range = document.createRange();
+        const sel = window.getSelection();
+        range.selectNodeContents(element);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+
+      // 调整尺寸函数（修改后）
+      function adjustEditorSize(editor) {
+        const placeholder = editor.getAttribute("placeholder");
+        let measureText = editor.textContent;
+
+        // 如果是占位符状态，使用占位符文本测量
+        if (editor.dataset.isPlaceholder === "true" && !measureText) {
+          measureText = placeholder;
+        }
+
+        // 创建测量元素
+        const measureSpan = document.createElement("span");
+        measureSpan.className = "measure-span";
+        measureSpan.textContent = measureText || "";
+        document.body.appendChild(measureSpan);
+
+        // 计算尺寸
+        const maxWidth = editor.parentElement.offsetWidth;
+        const minWidth = measureSpan.offsetWidth;
+
+        editor.style.width = `${Math.min(minWidth, maxWidth)}px`;
+        // editor.style.height = `${measureSpan.offsetHeight}px`;
+
+        document.body.removeChild(measureSpan);
+      }
+
+      // 初始化
+      function init() {
+        const container = document.getElementById("editorContainer");
+        const elements = parseTemplate(data);
+
+        elements.forEach((element) => {
+          if (element.type === "text") {
+            const textNode = document.createTextNode(element.content);
+            container.appendChild(textNode);
+          } else if (element.type === "input") {
+            const input = createInputElement(
+              element.displayText,
+              element.placeholder,
+              element.id
+            );
+            container.appendChild(input);
+          }
+        });
+      }
+
+      function resetCursorPostion() {
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) return null;
+        const range = selection.getRangeAt(0).cloneRange();
+        range.collapse(true); // 折叠到起始位置
+
+        const startContainer = range.startContainer;
+        const startOffset = range.startOffset;
+
+        // if (startContainer.nodeName === "DIV") {
+        //   return;
+        // }
+
+        // 分割文本节点并调整选区
+        const originalText = startContainer.textContent;
+        const beforeText = originalText.slice(0, startOffset);
+        const afterText = originalText.slice(startOffset);
+        startContainer.textContent = beforeText;
+        const newNode = document.createTextNode(afterText);
+        startContainer.parentNode.insertBefore(
+          newNode,
+          startContainer.nextSibling
+        );
+
+        // 恢复光标位置
+        const newRange = document.createRange();
+        newRange.setStart(newNode, 0);
+        newRange.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+      }
+
+      function handleInputClick(dom) {
+        const renderBtns = dataMap[dom.dataset.id];
+        const container = document.getElementById("optionsContainer");
+        container.innerHTML = "";
+
+        for (let i = 0; i < renderBtns.length; i++) {
+          const btnDom = document.createElement("div");
+          btnDom.className = "option-btn";
+          btnDom.innerHTML = renderBtns[i];
+          btnDom.onclick = (e) => {
+            dom.innerText = e.target.innerText;
+            adjustEditorSize(dom);
+          };
+          container.appendChild(btnDom);
+        }
+      }
+
+      document
+        .querySelector("#editorContainer")
+        .addEventListener("click", (e) => {
+          if (e.target.className !== "content-editor") {
+            document.getElementById("optionsContainer").innerHTML = "";
+          }
+        });
+
+      document.querySelector("#send-btn").addEventListener("click", (e) => {
+        const container = document.getElementById("editorContainer");
+        document.querySelector("#result").innerText = container.innerText;
+      });
+
+      document.querySelector("#cancel-btn").addEventListener("click", (e) => {
+        document.querySelector("#editorContainer").innerHTML = "";
+        init();
+      });
+
+      // 启动初始化
+      init();
+    </script>
+  </body>
+</html>

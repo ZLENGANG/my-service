@@ -1,0 +1,98 @@
+* {
+  margin: 0;
+  padding: 0;
+  background: white;
+}
+.container {
+  box-sizing: border-box;
+  position: fixed;
+  bottom: 0;
+  background: white;
+  width: 100%;
+}
+
+.input-container {
+  padding: 10px;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  outline: none;
+}
+
+.content-editor {
+  background: rgb(243, 241, 254);
+  color: rgb(103, 84, 198);
+  display: inline-block;
+  min-width: 2em;
+  max-width: calc(100% - 12px);
+  min-height: 1em;
+  border-radius: 4px;
+  padding: 4px 6px;
+  outline: none;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  position: relative;
+  margin: 5px 0;
+}
+
+.content-editor[placeholder]:empty::before {
+  content: attr(placeholder);
+  color: rgb(103, 84, 198);
+  opacity: 0.5;
+  pointer-events: none;
+  width: max-content;
+}
+
+/* 新增测量用样式 */
+.measure-span {
+  position: absolute;
+  visibility: hidden;
+  white-space: pre-wrap;
+  word-break: break-all;
+  padding: 4px 6px;
+}
+
+.options-container {
+  overflow: auto;
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.options-container::-webkit-scrollbar {
+  display: none;
+}
+
+.option-btn {
+  display: inline-block;
+  height: 32px;
+  padding: 0 10px;
+  line-height: 30px;
+  font-size: 12px;
+  border: 1px solid #e1f3d8;
+  border-radius: 4px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  margin-right: 10px;
+}
+
+.send-box {
+  margin: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.send-btn {
+  background-color: #f0f9eb;
+  border-color: #e1f3d8;
+  color: #67c23a;
+}
+
+#result {
+  position: fixed;
+  transform: translateX(-50%);
+  left: 50%;
+  top: 150px;
+  text-align: center;
+  width: 90%;
+}

@@ -1,6 +1,6 @@
 import LeaguesModel from "../../../schema/Leagues.js";
 import { getLatelyFiveGameResult } from "./task.js";
-import { getAllLeaguesTotalGames } from "./utils.js";
+import { getAllLeaguesTotalGames, getAllLeaguesTotalClub } from "./utils.js";
 
 const leaguesService = {
   // 获取联赛列表
@@ -35,6 +35,7 @@ const leaguesService = {
           code: -1,
           message: "该联赛已存在！",
         });
+        return;
       }
       await LeaguesModel.create(data);
       res.json({
@@ -82,6 +83,32 @@ const leaguesService = {
       res.json({ code: 500, message: error.message });
     }
   },
+
+  // async updateAllLeagues(req, res, next) {
+  //   try {
+  //     // 获取新数据
+  //     const list = await LeaguesModel.find();
+  //     const newList = await getAllLeaguesTotalClub(list);
+
+  //     for (const item of newList) {
+  //       const { leaguesClubTotal } = item; // 使用对象解构排除 _id 字段
+
+  //       await LeaguesModel.updateOne(
+  //         { code: item._doc.code },
+  //         {
+  //           leaguesClubTotal,
+  //         }
+  //       );
+  //     }
+
+  //     res.json({
+  //       code: 200,
+  //       message: "整表更新成功",
+  //     });
+  //   } catch (error) {
+  //     res.json({ code: 500, message: error.message });
+  //   }
+  // },
 
   async updateAllLeagues(req, res, next) {
     try {

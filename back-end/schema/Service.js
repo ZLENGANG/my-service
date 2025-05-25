@@ -6,7 +6,7 @@ const ServiceSchema = new mongoose.Schema(
     id: String,
     name: String,
     status: Boolean,
-    startTime: String,
+    execTime: String,
   },
   { timestamps: true }
 );

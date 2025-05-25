@@ -253,7 +253,7 @@ getLeaguesTop4GameDetailByDate({ date: date.value }).then(async (res) => {
   id.value = res.data?._id;
   let _game = uniqueObjectsByProperty(game, "teamA");
   if (_game[0].rate) {
-    _game = _game.filter((item) => item.rate[0] !== "-");
+    // _game = _game.filter((item) => item.rate[0] !== "-");
     originData = JSON.parse(JSON.stringify(_game));
 
     getData();

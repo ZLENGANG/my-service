@@ -14,7 +14,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: FORNT_END_PORT,
+    port: 5174,
   },
   build: {
     // rollup 配置

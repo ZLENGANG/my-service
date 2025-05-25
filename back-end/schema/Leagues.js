@@ -8,6 +8,7 @@ const LeaguesSchema = new mongoose.Schema(
     disabled: Boolean,
     totalGames: Number,
     avgGames: Number,
+    leaguesClubTotal: Number,
   },
   { timestamps: true }
 );
